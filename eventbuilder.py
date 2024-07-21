@@ -53,7 +53,13 @@ class DroppedDataExtractor():
         # Start Building Settings Dictionary
         settings_dict = {}
         for n, i in enumerate(settings_first_layer):
-            settings_dict[n] = i
+
+            # Check for Components with Sub-Widgets
+            if i == "if-else" or i == "if":
+                settings_dict[n] = {i : []}
+
+            else:
+                settings_dict[n] = i
 
         print(settings_dict)
 
