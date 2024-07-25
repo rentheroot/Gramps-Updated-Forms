@@ -86,7 +86,7 @@ class DroppedDataExtractor():
                 for child in children:
 
                     # Check for Components with Sub-Widgets
-                    if child.get_name() == "if":
+                    if child.get_name() in ["if", "if-else"]:
                         sub_dict = self.handle_sub_widgets(child)
                         settings_dict[num_items] = {child.get_name() : sub_dict}
                         num_items += 1
@@ -106,7 +106,7 @@ class DroppedDataExtractor():
             # Iterate through sections of component
             for i in grid.get_children():
 
-                if i.get_name() in ["if-section", "then-section"]:
+                if i.get_name() in ["if-section", "then-section", "else-section"]:
                     sub_dict = self.iter_widgets(i)
                     sub_widget_dict[i.get_name()] = sub_dict
 
@@ -381,11 +381,13 @@ class DropArea(Gtk.Grid):
         parent_grid = dest_widget.get_ancestor(Gtk.Grid())
 
         tool_widget = Gtk.Grid()
+        tool_widget.set_name("then-section")
         drag_widget = Gtk.Button()
         self.generic_connection(drag_widget)
         tool_widget.attach(drag_widget, 0, 0, 1, 1)
 
         tool_widget_2 = Gtk.Grid()
+        tool_widget_2.set_name("else-section")
         drag_widget_2 = Gtk.Button()
         self.generic_connection(drag_widget_2)
         tool_widget_2.attach(drag_widget_2, 0, 0, 1, 1)
@@ -400,6 +402,7 @@ class DropArea(Gtk.Grid):
 
         box.attach(label, 0, 1, 3, 1)
         box.attach(clear_btn, 3, 0, 1, 1)
+        widget.set_name("if-section")
         box.attach(widget, 3, 1, 4, 1)
         box.attach(then_label, 7, 1, 1, 1)
         box.attach(tool_widget, 9, 1, 4, 1)
