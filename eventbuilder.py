@@ -60,56 +60,42 @@ class DroppedDataExtractor():
             except:
                 pass
 
-        # Get First Layer of Items
-        settings_first_layer = []
+        # Start Building Settings Dictionary
+        settings_dict = {}
+        num_items = 0
+
         for i in top_layer:
             if i == None:
                 pass
             else:
                 children = i.get_children()
                 for child in children:
-                    settings_first_layer.append(child.get_name())
-        
-        # Start Building Settings Dictionary
-        settings_dict = {}
-        for n, i in enumerate(settings_first_layer):
 
-            # Check for Components with Sub-Widgets
-            if i == "if-else" or i == "if":
-                settings_dict[n] = {i : []}
+                    # Check for Components with Sub-Widgets
+                    if child.get_name() == "if":
+                        sub_dict = self.handle_sub_widgets(child)
+                        settings_dict[num_items] = {child.get_name() : sub_dict}
+                        num_items += 1
 
-            else:
-                settings_dict[n] = i
-
-        print(settings_dict)
-
-
-
-    def get_grid_components(self, grid_widget, default):
-        
-        print(grid_widget.get_name())
-        for child in grid_widget:
-            
-            if child.get_name() == "GtkBox":
-
-                print(grid_widget.child_get_property(child, 'left-attach'))
-
-                for i in child:
-                    
-                    if i.get_name() == "Get value from column named:":
-                        name = "by-col-name"
-                    elif i.get_name() == "Get value from column number:":
-                        name = "by-col-num"
-                    elif i.get_name() == "Integer":
-                        name = "integer"
-                    elif i.get_name() == "Text":
-                        name = "string"
                     else:
-                        name = i.get_name()
+                        settings_dict[num_items] = child.get_name()
+                        num_items += 1
 
-                    default[grid_widget.child_get_property(child, 'left-attach')] = name
-        print(default)
+        return(settings_dict)
 
+    def handle_sub_widgets(self, component):
+        sub_widget_dict = {}
+
+        for grid in component.get_children():
+
+            # Iterate through sections of component
+            for i in grid.get_children():
+
+                if i.get_name() in ["if-section", "then-section"]:
+                    sub_dict = self.iter_widgets(i)
+                    sub_widget_dict[i.get_name()] = sub_dict
+
+        return(sub_widget_dict)
 
 class DropArea(Gtk.Grid):
 
@@ -132,7 +118,8 @@ class DropArea(Gtk.Grid):
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         text = data.get_text()
         self.build_widget(text, widget)
-        self.ExtractData.iter_widgets(self)
+        settings_dict = self.ExtractData.iter_widgets(self)
+        print(settings_dict)
         
 
     def build_widget(self, received_text, dest_widget):
