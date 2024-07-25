@@ -53,10 +53,14 @@ class DroppedDataExtractor():
         num_children = og_num_children
 
         top_layer = []
+
+        # Get the components of the first layer in order
         for i in range(0, num_children):
             try:
                 child = parent_grid.get_child_at(i, 0)
                 top_layer.append(child)
+
+            # Error catcher for if there is no child at location
             except:
                 pass
 
@@ -64,9 +68,19 @@ class DroppedDataExtractor():
         settings_dict = {}
         num_items = 0
 
+        # Iterate through first layer of components
         for i in top_layer:
+
+            """
+            If a widget covers more than one column, 
+            the widget will only be identified
+            when the first column the widget is part of
+            is queried. The rest of the columns covered by
+            the widget will be Nonetype objects
+            """
             if i == None:
                 pass
+
             else:
                 children = i.get_children()
                 for child in children:
@@ -77,6 +91,7 @@ class DroppedDataExtractor():
                         settings_dict[num_items] = {child.get_name() : sub_dict}
                         num_items += 1
 
+                    # Check for Components without Sub-Widgets
                     else:
                         settings_dict[num_items] = child.get_name()
                         num_items += 1
