@@ -32,12 +32,6 @@ class DroppedDataExtractor():
     def __init__(self, parent_widget):
         self.parent_widget = parent_widget
 
-    def tester(self):
-        for child in self.parent_widget.get_children():
-            for c in child:
-                layer = 0
-                self.get_sub_widgets(c, layer)
-
     def iter_widgets(self, parent_grid):
 
         # First layer of widgets
@@ -97,6 +91,20 @@ class DroppedDataExtractor():
                         num_items += 1
 
         return(settings_dict)
+    
+    def save_full_config(self,btn):
+        full_config = {}
+        child = self.parent_widget.get_parent().get_parent().get_children()
+        stack_contents = ["DateGrid", "DescGrid", "PlaceGrid", "RoleGrid"]
+
+        for c in child:
+            if c.get_name() == "GtkStack":
+                for slide in stack_contents:
+                    current_slide = c.get_child_by_name(slide)
+                    full_config[slide] = self.iter_widgets(current_slide)
+
+        print(json.dumps(full_config, indent=4))
+
 
     def handle_sub_widgets(self, component):
         sub_widget_dict = {}
@@ -133,8 +141,6 @@ class DropArea(Gtk.Grid):
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         text = data.get_text()
         self.build_widget(text, widget)
-        settings_dict = self.ExtractData.iter_widgets(self)
-        print(settings_dict)
         
 
     def build_widget(self, received_text, dest_widget):
@@ -229,8 +235,6 @@ class DropArea(Gtk.Grid):
             tool_widget.set_name("by-col-name")
 
             self.make_labelled_tool(label_name, dest_widget, tool_widget)
-        
-        #self.ExtractData.tester()
 
     def make_icon_tool(self, icon_name, dest_widget):
         widget = Gtk.Image.new_from_icon_name(icon_name, 5)
@@ -294,6 +298,7 @@ class DropArea(Gtk.Grid):
         box_enclosure.add(box)
         parent_grid.attach_next_to(box_enclosure, dest_widget, 0, 1, 1)
         dest_widget.destroy()
+
 
         # Insert new blank placeholders
         front_blank = Gtk.Button()
@@ -521,6 +526,12 @@ class EventBuilderWindow(Gramplet):
 
         vbox.pack_start(stack_switcher, False, False, 0)
         vbox.pack_start(stack, False, False, 0)
+
+        # Add Save Button
+        self.ExtractData = DroppedDataExtractor(date_grid_dest)
+        save_btn = Gtk.Button(label = "Save")
+        save_btn.connect('clicked', self.ExtractData.save_full_config)
+        grid.attach(save_btn, 0, 2, 1, 1)
 
         # Add description editor window
         desc_editor = self.build_description_editor()
