@@ -27,6 +27,52 @@ from form import Form
 import os
 import json
 
+class DropAreaTextExtractor():
+
+    # Initialize with relevant JSON data
+    def __init__(self, j_data):
+        self.j_data = j_data
+
+        '''
+        Categories of Components
+        for logical checks
+        '''
+        self.operations = [
+            "plus",
+            "minus"
+            "divide",
+            "times"
+        ]
+        self.comparators = [
+            "greater",
+            "less",
+            "less-equal",
+            "greater-equal"
+        ]
+        self.extract()
+
+    # Extract text version of validated json
+    def extract(self):
+
+        # JSON first Layer (Numbers)
+        positions = sorted(self.j_data.keys())
+        min_pos = positions[0]
+        max_pos = positions[-1]
+        for pos in positions:
+            print(self.j_data[pos])
+
+
+    def check_component_type(self, component):
+        types = []
+        if component in self.operations:
+            types.append("operation")
+        if component in self.comparators:
+            types.append("comparator")
+
+        return(types)
+
+
+
 class DroppedDataExtractor():
 
     def __init__(self, parent_widget):
@@ -104,6 +150,7 @@ class DroppedDataExtractor():
                     full_config[slide] = self.iter_widgets(current_slide)
 
         print(json.dumps(full_config, indent=4))
+        text_data = DropAreaTextExtractor(full_config["DescGrid"])
 
 
     def handle_sub_widgets(self, component):
