@@ -37,18 +37,31 @@ class DropAreaTextExtractor():
         Categories of Components
         for logical checks
         '''
-        self.operations = [
+        self.int_operations = [
             "plus",
             "minus"
             "divide",
             "times"
         ]
-        self.comparators = [
+
+        self.str_operations = [
+            "plus"
+        ]
+
+        self.int_comparators = [
             "greater",
             "less",
             "less-equal",
-            "greater-equal"
+            "great-equal",
+            "not-equal-to",
+            "equal"
         ]
+
+        self.str_comparators = [
+            "not-equal-to",
+            "equal"
+        ]
+
         self.extract()
 
     # Extract text version of validated json
@@ -56,22 +69,92 @@ class DropAreaTextExtractor():
 
         # JSON first Layer (Numbers)
         positions = sorted(self.j_data.keys())
-        min_pos = positions[0]
-        max_pos = positions[-1]
-        for pos in positions:
-            print(self.j_data[pos])
 
+        for pos in positions:
+
+            component = self.j_data[pos]
+            component_types = self.check_component_type(component)
+
+            # Some components need to be between two variables
+            
+            prev_pos = pos - 1
+            next_pos = pos + 1
+
+            if "int_operation" in component_types or \
+                "str_operation" in component_types or \
+                "int_comparator" in component_types or \
+                "str_comparator" in component_types:
+
+                if prev_pos < 0:
+                    if "str_comparator" in component_types or \
+                        "str_operation" in component_types:
+
+                        error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                        print(error)
+
+                    else:
+                        
+                        error = f"Error: The '{component}' component must be placed between two numerical values"
+                        print(error)
+
+                else:
+
+                    try:
+                        prev_component = self.j_data[prev_pos]
+                        next_component = self.j_data[next_pos]
+
+                        prev_types = self.check_component_type(prev_component)
+                        next_types = self.check_component_type(next_component)
+
+                        all_types = [*prev_types, *next_types]
+
+                        if "int_operation" in all_types or \
+                            "str_operation" in all_types or \
+                            "int_comparator" in all_types or \
+                            "str_comparator" in all_types:
+
+                            if "str_comparator" in component_types or \
+                                "str_operation" in component_types:
+
+                                error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                print(error)
+
+                            else:
+                                
+                                error = f"Error: The '{component}' component must be placed between two numerical values"
+                                print(error)  
+                            
+                        print(f"Previous: {prev_component}")
+                        print(f"Next: {next_component}")
+                    
+                    # No next component
+                    except KeyError:
+
+                        if "str_comparator" in component_types or \
+                            "str_operation" in component_types:
+
+                            error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                            print(error)
+
+                        else:
+                            
+                            error = f"Error: The '{component}' component must be placed between two numerical values"
+                            print(error)
+
+            print(self.j_data[pos])
 
     def check_component_type(self, component):
         types = []
-        if component in self.operations:
-            types.append("operation")
-        if component in self.comparators:
-            types.append("comparator")
+        if component in self.int_operations:
+            types.append("int_operation")
+        if component in self.str_operations:
+            types.append("str_operation")
+        if component in self.int_comparators:
+            types.append("int_comparator")
+        if component in self.str_comparators:
+            types.append("str_comparator")
 
         return(types)
-
-
 
 class DroppedDataExtractor():
 
