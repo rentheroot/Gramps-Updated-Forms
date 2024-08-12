@@ -66,6 +66,8 @@ class DropAreaTextExtractor():
 
     # Extract text version of validated json
     def extract(self):
+        
+        valid = True
 
         # JSON first Layer (Numbers)
         positions = sorted(self.j_data.keys())
@@ -90,11 +92,13 @@ class DropAreaTextExtractor():
                         "str_operation" in component_types:
 
                         error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                        valid = False
                         print(error)
 
                     else:
                         
                         error = f"Error: The '{component}' component must be placed between two numerical values"
+                        valid = False
                         print(error)
 
                 else:
@@ -117,11 +121,13 @@ class DropAreaTextExtractor():
                                 "str_operation" in component_types:
 
                                 error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                valid = False
                                 print(error)
 
                             else:
                                 
                                 error = f"Error: The '{component}' component must be placed between two numerical values"
+                                valid = False
                                 print(error)  
                             
                         print(f"Previous: {prev_component}")
@@ -134,11 +140,13 @@ class DropAreaTextExtractor():
                             "str_operation" in component_types:
 
                             error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                            valid = False
                             print(error)
 
                         else:
                             
                             error = f"Error: The '{component}' component must be placed between two numerical values"
+                            valid = False
                             print(error)
 
             print(self.j_data[pos])
@@ -235,7 +243,6 @@ class DroppedDataExtractor():
         print(json.dumps(full_config, indent=4))
         text_data = DropAreaTextExtractor(full_config["DescGrid"])
 
-
     def handle_sub_widgets(self, component):
         sub_widget_dict = {}
 
@@ -262,7 +269,6 @@ class DropArea(Gtk.Grid):
         blank.drag_dest_add_text_targets()
         blank.connect("drag-data-received", self.on_drag_data_received)
         
-
         self.add(blank)
         self.show_all()
 
@@ -272,7 +278,6 @@ class DropArea(Gtk.Grid):
         text = data.get_text()
         self.build_widget(text, widget)
         
-
     def build_widget(self, received_text, dest_widget):
         
         if received_text == "Minus":
@@ -429,7 +434,6 @@ class DropArea(Gtk.Grid):
         parent_grid.attach_next_to(box_enclosure, dest_widget, 0, 1, 1)
         dest_widget.destroy()
 
-
         # Insert new blank placeholders
         front_blank = Gtk.Button()
         self.generic_connection(front_blank)
@@ -582,7 +586,6 @@ class DropArea(Gtk.Grid):
         
         extra_blank.destroy()
 
-
 class EventBuilderWindow(Gramplet):
 
     def init(self):
@@ -629,7 +632,6 @@ class EventBuilderWindow(Gramplet):
 
         # Attach Combobox
         grid.attach(column_dropdown_events, 1, 1, 1, 1)
-
 
         """
         Editor Area
@@ -762,11 +764,9 @@ class EventBuilderWindow(Gramplet):
         self.enable_drag(divide, "divide")
         math_group.add(divide)
 
-
         """
         Comparator Tools
         """
-
         # Comparators Group
         comp_group = Gtk.ToolItemGroup(label="Comparators")
         comp_group.set_name("Comparator Palette")
@@ -848,7 +848,6 @@ class EventBuilderWindow(Gramplet):
         tool_palette.add(comp_group)
         tool_palette.add(logic_group)
 
-        
         tool_palette_container.add(tool_palette)
 
         # Setup container
@@ -872,7 +871,6 @@ class EventBuilderWindow(Gramplet):
 
         return desc_editor
     
-
     def enable_drag(self, tool_item=None, icon_name=None):
         """
         Enable self as a drag source.
@@ -886,7 +884,6 @@ class EventBuilderWindow(Gramplet):
             tool_item.drag_source_set_icon_name(icon_name)
             tool_item.drag_source_add_text_targets()
             tool_item.connect("drag_data_get", drag_data_get)
-
 
     def drag_data_get(
         self, _dummy_widget, _dummy_context, data, info, _dummy_time
