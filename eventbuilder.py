@@ -67,15 +67,27 @@ class DropAreaTextExtractor():
     # Extract text version of validated json
     def extract(self):
         
-        valid = True
+        self.valid = True
 
         # JSON first Layer (Numbers)
         positions = sorted(self.j_data.keys())
+        self.error_catcher(positions)
+        
+
+    def error_catcher(self, positions):
 
         for pos in positions:
 
             component = self.j_data[pos]
             component_types = self.check_component_type(component)
+
+            # Check for sub-layers
+            if type(component) is dict:
+                if 'if' in component.keys():
+                    print(component['if'])
+
+                elif 'else-if' in component.keys():
+                    print(component['else-if'])
 
             # Some components need to be between two variables
             
@@ -92,13 +104,13 @@ class DropAreaTextExtractor():
                         "str_operation" in component_types:
 
                         error = f"Error: The '{component}' component must be placed between two string or numerical values"
-                        valid = False
+                        self.valid = False
                         print(error)
 
                     else:
                         
                         error = f"Error: The '{component}' component must be placed between two numerical values"
-                        valid = False
+                        self.valid = False
                         print(error)
 
                 else:
@@ -121,13 +133,13 @@ class DropAreaTextExtractor():
                                 "str_operation" in component_types:
 
                                 error = f"Error: The '{component}' component must be placed between two string or numerical values"
-                                valid = False
+                                self.valid = False
                                 print(error)
 
                             else:
                                 
                                 error = f"Error: The '{component}' component must be placed between two numerical values"
-                                valid = False
+                                self.valid = False
                                 print(error)  
                             
                         print(f"Previous: {prev_component}")
@@ -140,13 +152,13 @@ class DropAreaTextExtractor():
                             "str_operation" in component_types:
 
                             error = f"Error: The '{component}' component must be placed between two string or numerical values"
-                            valid = False
+                            self.valid = False
                             print(error)
 
                         else:
                             
                             error = f"Error: The '{component}' component must be placed between two numerical values"
-                            valid = False
+                            self.valid = False
                             print(error)
 
             print(self.j_data[pos])
