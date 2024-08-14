@@ -62,92 +62,126 @@ class DropAreaTextExtractor():
             "equal"
         ]
 
+        self.as_text = {
+            'plus' : '+',
+            'minus' : '-',
+            'divide' : '÷',
+            'times' : '*',
+            'greater' : '>',
+            'less' : '<',
+            'equal' : '='
+        }
+
         self.extract()
 
     # Extract text version of validated json
     def extract(self):
         
         self.valid = True
+        self.text_representation = ""
 
         # JSON first Layer (Numbers)
         positions = sorted(self.j_data.keys())
-        self.error_catcher(positions)
+        sub_data = self.j_data
+        self.error_catcher(positions, sub_data)
+
+        print(self.text_representation)
         
+    def error_catcher(self, positions, sub_data):
 
-    def error_catcher(self, positions):
+        if self.valid == True:
 
-        for pos in positions:
+            for pos in positions:
 
-            component = self.j_data[pos]
-            component_types = self.check_component_type(component)
+                component = sub_data[pos]
 
-            # Check for sub-layers
-            if type(component) is dict:
-                if 'if' in component.keys():
-                    print(component['if'])
+                # Add to text representation
+                if type(component) == dict:
+                    pass
 
-                elif 'else-if' in component.keys():
-                    print(component['else-if'])
-
-            # Some components need to be between two variables
-            
-            prev_pos = pos - 1
-            next_pos = pos + 1
-
-            if "int_operation" in component_types or \
-                "str_operation" in component_types or \
-                "int_comparator" in component_types or \
-                "str_comparator" in component_types:
-
-                if prev_pos < 0:
-                    if "str_comparator" in component_types or \
-                        "str_operation" in component_types:
-
-                        error = f"Error: The '{component}' component must be placed between two string or numerical values"
-                        self.valid = False
-                        print(error)
-
-                    else:
-                        
-                        error = f"Error: The '{component}' component must be placed between two numerical values"
-                        self.valid = False
-                        print(error)
+                if type(component) == tuple:
+                    if component[0] == "Text":
+                        self.text_representation += f' "{component[1]}" '
+                    if component[0] == "Integer":
+                        self.text_representation += f' {component[1]} '
 
                 else:
+                    if component in self.as_text.keys():
+                        self.text_representation += f' {self.as_text[component]} '
 
-                    try:
-                        prev_component = self.j_data[prev_pos]
-                        next_component = self.j_data[next_pos]
+                component_types = self.check_component_type(component)
 
-                        prev_types = self.check_component_type(prev_component)
-                        next_types = self.check_component_type(next_component)
+                # Check for sub-layers
+                if type(component) is dict:
+                    if 'if' in component.keys():
+                        sub_dict = component['if']
 
-                        all_types = [*prev_types, *next_types]
+                        # Validate Subsections
+                        if_section = sub_dict['if-section']
+                        then_section = sub_dict['then-section']
 
-                        if "int_operation" in all_types or \
-                            "str_operation" in all_types or \
-                            "int_comparator" in all_types or \
-                            "str_comparator" in all_types:
+                        if len(if_section.keys()) == 0:
+                            error = "Error: The 'if' section of the 'if' component must have subcomponents"
+                            self.valid = False
+                            print(error)
 
-                            if "str_comparator" in component_types or \
-                                "str_operation" in component_types:
+                        if len(then_section.keys()) == 0:
+                            error = "Error: The 'then' section of the 'if' component must have subcomponents"
+                            self.valid = False
+                            print(error)
 
-                                error = f"Error: The '{component}' component must be placed between two string or numerical values"
-                                self.valid = False
-                                print(error)
+                        # Check all sub layers
+                        if self.valid == True:
+                            sub_pos = sorted(if_section.keys())
+                            self.error_catcher(sub_pos, if_section)
 
-                            else:
-                                
-                                error = f"Error: The '{component}' component must be placed between two numerical values"
-                                self.valid = False
-                                print(error)  
-                            
-                        print(f"Previous: {prev_component}")
-                        print(f"Next: {next_component}")
-                    
-                    # No next component
-                    except KeyError:
+                            sub_pos = sorted(then_section.keys())
+                            self.error_catcher(sub_pos, then_section)
 
+                    elif 'if-else' in component.keys():
+                        sub_dict = component['if-else']
+
+                        # Validate Subsections
+                        if_section = sub_dict['if-section']
+                        then_section = sub_dict['then-section']
+                        else_section = sub_dict['else-section']
+
+                        if len(if_section.keys()) == 0:
+                            error = "Error: The 'if' section of the 'if-else' component must have subcomponents"
+                            self.valid = False
+                            print(error)
+
+                        if len(then_section.keys()) == 0:
+                            error = "Error: The 'then' section of the 'if-else' component must have subcomponents"
+                            self.valid = False
+                            print(error)
+
+                        if len(else_section.keys()) == 0:
+                            error = "Error: The 'else' section of the 'if-else' component must have subcomponents"
+                            self.valid = False
+                            print(error)
+
+                        # Check all sub layers
+                        if self.valid == True:
+                            sub_pos = sorted(if_section.keys())
+                            self.error_catcher(sub_pos, if_section)
+
+                            sub_pos = sorted(then_section.keys())
+                            self.error_catcher(sub_pos, then_section)
+
+                            sub_pos = sorted(else_section.keys())
+                            self.error_catcher(sub_pos, else_section)
+
+                # Some components need to be between two variables
+                prev_pos = pos - 1
+                next_pos = pos + 1
+
+                if "int_operation" in component_types or \
+                    "str_operation" in component_types or \
+                    "int_comparator" in component_types or \
+                    "str_comparator" in component_types:
+
+                    if prev_pos < 0:
                         if "str_comparator" in component_types or \
                             "str_operation" in component_types:
 
@@ -161,7 +195,50 @@ class DropAreaTextExtractor():
                             self.valid = False
                             print(error)
 
-            print(self.j_data[pos])
+                    else:
+
+                        try:
+                            prev_component = self.j_data[prev_pos]
+                            next_component = self.j_data[next_pos]
+
+                            prev_types = self.check_component_type(prev_component)
+                            next_types = self.check_component_type(next_component)
+
+                            all_types = [*prev_types, *next_types]
+
+                            if "int_operation" in all_types or \
+                                "str_operation" in all_types or \
+                                "int_comparator" in all_types or \
+                                "str_comparator" in all_types:
+
+                                if "str_comparator" in component_types or \
+                                    "str_operation" in component_types:
+
+                                    error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                    self.valid = False
+                                    print(error)
+
+                                else:
+                                    
+                                    error = f"Error: The '{component}' component must be placed between two numerical values"
+                                    self.valid = False
+                                    print(error)  
+                        
+                        # No next component
+                        except KeyError:
+
+                            if "str_comparator" in component_types or \
+                                "str_operation" in component_types:
+
+                                error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                self.valid = False
+                                print(error)
+
+                            else:
+                                
+                                error = f"Error: The '{component}' component must be placed between two numerical values"
+                                self.valid = False
+                                print(error)
 
     def check_component_type(self, component):
         types = []
@@ -232,6 +309,21 @@ class DroppedDataExtractor():
                     if child.get_name() in ["if", "if-else"]:
                         sub_dict = self.handle_sub_widgets(child)
                         settings_dict[num_items] = {child.get_name() : sub_dict}
+                        num_items += 1
+
+                    # Check for constants with values
+                    elif child.get_name() == "Text":
+                        entry_widgets = child.get_children()
+                        for w in entry_widgets:
+                            if w.get_name() == "string":
+                                settings_dict[num_items] = ("Text", w.get_text())
+                        num_items += 1
+
+                    elif child.get_name() == "Integer":
+                        entry_widgets = child.get_children()
+                        for w in entry_widgets:
+                            if w.get_name() == "integer":
+                                settings_dict[num_items] = ("Integer", w.get_text())
                         num_items += 1
 
                     # Check for Components without Sub-Widgets
