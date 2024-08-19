@@ -1,0 +1,16 @@
+{
+    "DateGrid": {},
+    "DescGrid": {
+        "0": [
+            "Text",
+            "Text 1"
+        ],
+        "1": "plus",
+        "2": [
+            "Text",
+            "Text 2"
+        ]
+    },
+    "PlaceGrid": {},
+    "RoleGrid": {}
+}

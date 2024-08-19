@@ -382,7 +382,10 @@ class DroppedDataExtractor():
                     current_slide = c.get_child_by_name(slide)
                     full_config[slide] = self.iter_widgets(current_slide)
 
-        print(json.dumps(full_config, indent=4))
+        config_path = os.path.join(os.path.dirname(__file__), 'testsave.txt')
+        with open(config_path, 'w') as f:
+            print(json.dumps(full_config, indent=4))
+            f.write(json.dumps(full_config, indent=4))
         text_data = DropAreaTextExtractor(full_config["DescGrid"])
 
     def handle_sub_widgets(self, component):
@@ -807,6 +810,11 @@ class EventBuilderWindow(Gramplet):
         save_btn.connect('clicked', self.ExtractData.save_full_config)
         grid.attach(save_btn, 0, 2, 1, 1)
 
+        # Add Load Button
+        load_btn = Gtk.Button(label = "Load")
+        load_btn.connect('clicked', self.rebuild_events)
+        grid.attach(load_btn, 0, 3, 1, 1)
+
         # Add description editor window
         desc_editor = self.build_description_editor()
 
@@ -1034,3 +1042,34 @@ class EventBuilderWindow(Gramplet):
         Return requested data.
         """
         data.set_text(_dummy_widget.get_label(),-1)
+
+    # Load Saved Configuration
+    def load_config_file(self, filename):
+        with open(filename, 'r') as f:
+            j_data = json.load(f)
+            return j_data
+
+
+    def rebuild_events(self, btn):
+        
+        # Load Config File
+        config_path = os.path.join(os.path.dirname(__file__), 'testsave.txt')
+        j_data = self.load_config_file(config_path)
+
+        """
+        Get Stack Widget
+        """
+        scrolled_window = self.gui.get_container_widget()
+        viewport =  scrolled_window.get_children()[0]
+        h_box = viewport.get_children()[0]
+        box = self.get_child_by_name(h_box, "GtkBox")
+        stack = self.get_child_by_name(box, "GtkStack")
+
+        for window in j_data.keys():
+            stack.set_visible_child_name(window)
+            scrolled_window.show_all()
+
+    def get_child_by_name(self, widget, name):
+        for child in widget.get_children():
+            if child.get_name() == name:
+                return child
