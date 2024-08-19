@@ -39,7 +39,7 @@ class DropAreaTextExtractor():
         '''
         self.int_operations = [
             "plus",
-            "minus"
+            "minus",
             "divide",
             "times"
         ]
@@ -69,8 +69,18 @@ class DropAreaTextExtractor():
             'times' : '*',
             'greater' : '>',
             'less' : '<',
-            'equal' : '='
+            'equal' : '=',
+            'great-equal' : '>=',
+            'less-equal' : '<=',
+            'not-equal-to' : '!='
         }
+
+        self.numerical = [
+            "Integer"
+        ]
+        self.string = [
+            "Text"
+        ]
 
         self.extract()
 
@@ -99,7 +109,7 @@ class DropAreaTextExtractor():
                 if type(component) == dict:
                     pass
 
-                if type(component) == tuple:
+                elif type(component) == tuple:
                     if component[0] == "Text":
                         self.text_representation += f' "{component[1]}" '
                     if component[0] == "Integer":
@@ -182,6 +192,7 @@ class DropAreaTextExtractor():
                     "str_comparator" in component_types:
 
                     if prev_pos < 0:
+                        
                         if "str_comparator" in component_types or \
                             "str_operation" in component_types:
 
@@ -198,14 +209,21 @@ class DropAreaTextExtractor():
                     else:
 
                         try:
-                            prev_component = self.j_data[prev_pos]
-                            next_component = self.j_data[next_pos]
+                            prev_component = sub_data[prev_pos]
+                            next_component = sub_data[next_pos]
+
+                            if type(prev_component) is tuple:
+                                prev_component = prev_component[0]
+
+                            if type(next_component) is tuple:
+                                next_component = next_component[0]
 
                             prev_types = self.check_component_type(prev_component)
                             next_types = self.check_component_type(next_component)
 
                             all_types = [*prev_types, *next_types]
 
+                            # Don't allow two operations one after the other
                             if "int_operation" in all_types or \
                                 "str_operation" in all_types or \
                                 "int_comparator" in all_types or \
@@ -223,7 +241,20 @@ class DropAreaTextExtractor():
                                     error = f"Error: The '{component}' component must be placed between two numerical values"
                                     self.valid = False
                                     print(error)  
-                        
+
+                            # Check next and prev component types
+                            else:
+                                if "int" in all_types:
+                                    if component not in [*self.int_operations, *self.int_comparators]:
+                                        error = f"Error: The '{component}' component cannot be placed between numerical values"
+                                        self.valid = False
+                                        print(error)
+                                if "str" in all_types and self.valid is True:
+                                    if component not in [*self.str_operations, *self.str_comparators]:
+                                        error = f"Error: The '{component}' component cannot be placed between textual values"
+                                        self.valid = False
+                                        print(error)
+
                         # No next component
                         except KeyError:
 
@@ -241,7 +272,10 @@ class DropAreaTextExtractor():
                                 print(error)
 
     def check_component_type(self, component):
+        
         types = []
+        if type(component) is tuple:
+            component = component[0]
         if component in self.int_operations:
             types.append("int_operation")
         if component in self.str_operations:
@@ -250,6 +284,10 @@ class DropAreaTextExtractor():
             types.append("int_comparator")
         if component in self.str_comparators:
             types.append("str_comparator")
+        if component in self.numerical:
+            types.append("int")
+        if component in self.string:
+            types.append("str")
 
         return(types)
 
