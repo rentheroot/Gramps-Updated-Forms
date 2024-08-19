@@ -798,6 +798,11 @@ class EventBuilderWindow(Gramplet):
         role_grid_dest = DropArea()
         stack.add_titled(role_grid_dest, "RoleGrid", "Role")
 
+        self.date_grid_dest = date_grid_dest
+        self.desc_grid_dest = desc_grid_dest
+        self.place_grid_dest = place_grid_dest
+        self.role_grid_dest = role_grid_dest
+
         stack_switcher = Gtk.StackSwitcher()
         stack_switcher.set_stack(stack)
 
@@ -1066,10 +1071,92 @@ class EventBuilderWindow(Gramplet):
         stack = self.get_child_by_name(box, "GtkStack")
 
         for window in j_data.keys():
+
+            if window == "DescGrid":
+                drop_slide = self.desc_grid_dest
+            elif window == "DateGrid":
+                drop_slide = self.date_grid_dest
+            elif window == "RoleGrid":
+                drop_slide = self.role_grid_dest
+            elif window == "PlaceGrid":
+                drop_slide = self.place_grid_dest
+
             stack.set_visible_child_name(window)
             scrolled_window.show_all()
+
+            # Get window widget
+            slide = stack.get_visible_child()
+            for child in slide.get_children():
+                
+                if child.get_name() == "GtkBox":
+                    for component in child.get_children():
+                        for element in component.get_children():
+
+                            # Remove existing widgets from slide
+                            if element.get_name() == "GtkButton":
+                                self.del_component(element)
+
+                            if element.get_name() == "GtkGrid":
+                                del_button = self.get_child_by_name(element, "GtkButton")
+                                self.del_component(del_button)
+
+                scrolled_window.show_all()
+
+            # Add elements from saved config to gui
+            slide_data = j_data[window]
+            drop_button = self.get_child_by_name(slide, "GtkButton")
+            drop_grid = drop_button.get_parent()
+            print(type(drop_grid))
+
+            self.add_events_from_layer(slide_data, drop_grid, scrolled_window, drop_slide)
+            scrolled_window.show_all()
+
+    def add_events_from_layer(self, layer, drop_grid, scrolled_window, drop_slide):
+
+        # Get number of elements
+        total = len(layer.keys())
+        
+        # Iterate through elements
+        for i in range(total):
+            widget_data = layer[str(i)]
+            print(type(widget_data))
+
+            # Get Widget Type
+            if type(widget_data) is list:
+                widget_name = widget_data[0]
+
+                if widget_name == "Text":
+                    widget_name = "String"
+
+                    dest_button = drop_grid.get_child_at(i + i, 0)
+
+            elif type(widget_data) is str:
+                widget_name = widget_data
+                if widget_name == "plus":
+                    widget_name = "Plus"
+                    print("here")
+                    dest_button = drop_grid.get_child_at(i + i, 0)
+                    print(dest_button.get_name())
+            
+            DropArea.build_widget(drop_slide, widget_name, dest_button)
+            scrolled_window.show_all()
+            for item in drop_grid.get_children():
+                print(drop_grid.child_get_property(item, 'left-attach'))
+            print("success")
 
     def get_child_by_name(self, widget, name):
         for child in widget.get_children():
             if child.get_name() == name:
                 return child
+            
+    def del_component(self, del_btn):
+        parent_widget = del_btn.get_ancestor(Gtk.Box)
+        master_grid = parent_widget.get_ancestor(Gtk.Grid)
+        col = master_grid.child_get_property(parent_widget, 'left-attach')
+        col = col + 1
+        extra_blank = master_grid.get_child_at(col, 0)
+
+        for widget in parent_widget.get_children():
+            widget.destroy()
+        
+        extra_blank.destroy()
