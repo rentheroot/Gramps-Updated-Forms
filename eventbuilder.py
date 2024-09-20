@@ -1154,7 +1154,6 @@ class EventBuilderWindow(Gramplet):
                 else:
                     dest_button = drop_grid.get_child_at(i + i, 0)
 
-
             else:
                 print(type(widget_data))
             try:

@@ -81,3 +81,27 @@ class TemplateOperations:
             result = False
 
         return result
+    
+    def less_than_or_equal(self, var_1, var_2):
+
+        # is less than or equal to
+        if var_1 <= var_2:
+            result = True
+
+        # is not less than or equal to
+        else:
+            result = False
+
+        return result
+    
+    def greater_than_or_equal(self, var_1, var_2):
+
+        # is greater than or equal to
+        if var_1 >= var_2:
+            result = True
+
+        # is not greater than or equal to
+        else:
+            result = False
+
+        return result
