@@ -44,6 +44,8 @@ class TemplateOperations:
         else:
             result = False
 
+        return result
+
     def not_equal(self, var_1, var_2):
 
         # not equal
@@ -53,4 +55,29 @@ class TemplateOperations:
         # equal
         else:
             result = True
+
+        return result
     
+    def less_than(self, var_1, var_2):
+
+        # is less than
+        if var_1 < var_2:
+            result = True
+
+        # is not less than
+        else:
+            result = False
+
+        return result
+    
+    def greater_than(self, var_1, var_2):
+
+        # is greater than
+        if var_1 > var_2:
+            result = True
+
+        # is not greater than
+        else:
+            result = False
+
+        return result
