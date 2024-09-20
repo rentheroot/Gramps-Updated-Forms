@@ -1115,6 +1115,7 @@ class EventBuilderWindow(Gramplet):
 
         # Get number of elements
         total = len(layer.keys())
+        print(layer)
         
         # Iterate through elements
         for i in range(total):
@@ -1124,6 +1125,7 @@ class EventBuilderWindow(Gramplet):
             # Get Widget Type
             if type(widget_data) is list:
                 widget_name = widget_data[0]
+                print(widget_name)
 
                 if widget_name == "Text":
                     widget_name = "String"
@@ -1132,13 +1134,24 @@ class EventBuilderWindow(Gramplet):
 
             elif type(widget_data) is str:
                 widget_name = widget_data
+                print(widget_name)
                 if widget_name == "plus":
                     widget_name = "Plus"
                     print("here")
                     dest_button = drop_grid.get_child_at(i + i, 0)
                     print(dest_button.get_name())
-            
-            DropArea.build_widget(drop_slide, widget_name, dest_button)
+
+            # if / else style widgets
+            elif type(widget_data) is dict:
+                pass
+
+
+            else:
+                print(type(widget_data))
+            try:
+                DropArea.build_widget(drop_slide, widget_name, dest_button)
+            except:
+                pass
             scrolled_window.show_all()
             for item in drop_grid.get_children():
                 print(drop_grid.child_get_property(item, 'left-attach'))
