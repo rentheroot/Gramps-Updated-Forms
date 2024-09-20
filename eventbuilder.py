@@ -1143,7 +1143,16 @@ class EventBuilderWindow(Gramplet):
 
             # if / else style widgets
             elif type(widget_data) is dict:
-                pass
+                widget_name = list(widget_data.keys())[0]
+                print(widget_name)
+                if widget_name == "if":
+                    widget_name = "If"
+                    print("here")
+                    dest_button = drop_grid.get_child_at(i + i, 0)
+                    print(dest_button.get_name())
+
+                else:
+                    dest_button = drop_grid.get_child_at(i + i, 0)
 
 
             else:
