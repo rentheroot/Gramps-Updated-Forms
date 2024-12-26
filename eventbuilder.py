@@ -1157,6 +1157,9 @@ class EventBuilderWindow(Gramplet):
                 if widget_name == "Text":
                     widget_name = "String"
 
+                if widget_name == "Integer":
+                    widget_name = "Number"
+
                 dest_button = target_grid.get_child_at(i + i, 0)
                 print(dest_button)
 
@@ -1168,6 +1171,15 @@ class EventBuilderWindow(Gramplet):
 
                 if widget_name == "equal":
                     widget_name = "Equal"
+
+                if widget_name == "minus":
+                    widget_name = "Minus"
+
+                if widget_name == "times":
+                    widget_name = "Times"
+
+                if widget_name == "divide":
+                    widget_name = "Divide"
 
                 dest_button = target_grid.get_child_at(i + i, 0)
                 print(dest_button)
