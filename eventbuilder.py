@@ -94,8 +94,6 @@ class DropAreaTextExtractor():
         positions = sorted(self.j_data.keys())
         sub_data = self.j_data
         self.error_catcher(positions, sub_data)
-
-        print(self.text_representation)
         
     def error_catcher(self, positions, sub_data):
 
@@ -386,7 +384,6 @@ class DroppedDataExtractor():
         with open(config_path, 'w') as f:
             print(json.dumps(full_config, indent=4))
             f.write(json.dumps(full_config, indent=4))
-        text_data = DropAreaTextExtractor(full_config["DescGrid"])
 
     def refresh_config_json(self, btn):
         slide_config = {}
@@ -399,9 +396,15 @@ class DroppedDataExtractor():
                     current_slide = c.get_child_by_name(slide)
                     slide_config[slide] = self.iter_widgets(current_slide)
 
+                    text_data_obj = DropAreaTextExtractor(slide_config[slide])
+                    text_data = text_data_obj.text_representation
+                    del text_data_obj
+
+                    print(text_data)
+
         config_path = os.path.join(os.path.dirname(__file__), 'testsave.txt')
         j_data = json.dumps(slide_config, indent=4)
-        text_data = DropAreaTextExtractor(slide_config["DescGrid"])
+        
 
         return(j_data)
 
