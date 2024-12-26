@@ -388,6 +388,23 @@ class DroppedDataExtractor():
             f.write(json.dumps(full_config, indent=4))
         text_data = DropAreaTextExtractor(full_config["DescGrid"])
 
+    def refresh_config_json(self, btn):
+        slide_config = {}
+        child = self.parent_widget.get_parent().get_parent().get_children()
+        stack_contents = ["DateGrid", "DescGrid", "PlaceGrid", "RoleGrid"]
+
+        for c in child:
+            if c.get_name() == "GtkStack":
+                for slide in stack_contents:
+                    current_slide = c.get_child_by_name(slide)
+                    slide_config[slide] = self.iter_widgets(current_slide)
+
+        config_path = os.path.join(os.path.dirname(__file__), 'testsave.txt')
+        j_data = json.dumps(slide_config, indent=4)
+        text_data = DropAreaTextExtractor(slide_config["DescGrid"])
+
+        return(j_data)
+
     def handle_sub_widgets(self, component):
         sub_widget_dict = {}
 
@@ -419,9 +436,13 @@ class DropArea(Gtk.Grid):
 
         self.ExtractData = DroppedDataExtractor(self)
 
+
+
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         text = data.get_text()
         self.build_widget(text, widget)
+
+        self.ExtractData.refresh_config_json(widget)
         
     def build_widget(self, received_text, dest_widget):
         
