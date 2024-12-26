@@ -1111,60 +1111,166 @@ class EventBuilderWindow(Gramplet):
             self.add_events_from_layer(slide_data, drop_grid, scrolled_window, drop_slide)
             scrolled_window.show_all()
 
-    def add_events_from_layer(self, layer, drop_grid, scrolled_window, drop_slide):
+    def add_events_from_layer(self, layer, drop_grid, scrolled_window, drop_slide, parent_section=None):
+        """
+        Recursively add events from saved configuration layer
+        
+        Args:
+            layer (dict): Layer of event configuration to process
+            drop_grid (Gtk.Grid): Grid to add widgets to 
+            scrolled_window (Gtk.ScrolledWindow): Main window
+            drop_slide (DropArea): Drop area for the current section
+            parent_section (str): Name of parent section (if/then) being processed
+        """
+        if drop_grid is None:
+            print("Warning: drop_grid is None")
+            return
 
         # Get number of elements
         total = len(layer.keys())
-        print(layer)
-        
-        # Iterate through elements
+        print(f"Processing layer with {total} elements")
+        print(f"Current parent_section: {parent_section}")
+
+        # Iterate through elements 
         for i in range(total):
             widget_data = layer[str(i)]
-            print(type(widget_data))
+            print(f"Processing widget_data: {widget_data}")
 
-            # Get Widget Type
-            if type(widget_data) is list:
+            if parent_section:
+                # If we're in a section, get the grid based on section name
+                if parent_section == "if-section":
+                    target_grid = self.find_section_grid(drop_grid, "if-section")
+                elif parent_section == "then-section":
+                    target_grid = self.find_section_grid(drop_grid, "then-section")
+                else:
+                    target_grid = drop_grid
+            else:
+                target_grid = drop_grid
+
+            if target_grid is None:
+                print(f"Warning: Could not find target grid for section {parent_section}")
+                continue
+
+            # Get Widget Type and handle different data structures
+            if isinstance(widget_data, list):
                 widget_name = widget_data[0]
-                print(widget_name)
-
                 if widget_name == "Text":
                     widget_name = "String"
 
-                    dest_button = drop_grid.get_child_at(i + i, 0)
+                dest_button = target_grid.get_child_at(i + i, 0)
+                print(dest_button)
 
-            elif type(widget_data) is str:
+            elif isinstance(widget_data, str):
                 widget_name = widget_data
-                print(widget_name)
+
                 if widget_name == "plus":
                     widget_name = "Plus"
-                    print("here")
-                    dest_button = drop_grid.get_child_at(i + i, 0)
-                    print(dest_button.get_name())
 
-            # if / else style widgets
-            elif type(widget_data) is dict:
-                widget_name = list(widget_data.keys())[0]
-                print(widget_name)
+                if widget_name == "equal":
+                    widget_name = "Equal"
+
+                dest_button = target_grid.get_child_at(i + i, 0)
+                print(dest_button)
+
+            elif isinstance(widget_data, dict):
+                widget_name = list(widget_data.keys())[0]  # This will be 'if'
                 if widget_name == "if":
-                    widget_name = "If"
-                    print("here")
-                    dest_button = drop_grid.get_child_at(i + i, 0)
-                    print(dest_button.get_name())
+                    display_name = "If"
+                    dest_button = target_grid.get_child_at(i + i, 0)
+                    
+                    print(f"Building If widget at position {i}")
+                    # Build the if widget first
+                    DropArea.build_widget(drop_slide, display_name, dest_button)
+                    scrolled_window.show_all()
+
+                    # Find the newly created if widget's frame and box
+                    if_frame = self.find_if_frame(target_grid)
+                    if if_frame:
+                        print("Found if frame")
+                        # Get the main grid inside the frame
+                        box = if_frame.get_child()
+                        if box and isinstance(box, Gtk.Grid):
+                            # Process if-section
+                            if_data = widget_data[widget_name].get("if-section", {})
+                            print("Processing if-section")
+                            self.add_events_from_layer(if_data, box, 
+                                                    scrolled_window, drop_slide, "if-section")
+
+                            # Process then-section
+                            then_data = widget_data[widget_name].get("then-section", {})
+                            print("Processing then-section")
+                            self.add_events_from_layer(then_data, box,
+                                                    scrolled_window, drop_slide, "then-section")
+                    else:
+                        print("Warning: Could not find if frame")
+                    
+                    continue  # Skip the normal widget building since we handled it specially
 
                 else:
-                    dest_button = drop_grid.get_child_at(i + i, 0)
+                    dest_button = target_grid.get_child_at(i + i, 0)
 
-            else:
-                print(type(widget_data))
-            try:
-                DropArea.build_widget(drop_slide, widget_name, dest_button)
-            except:
-                pass
+            if dest_button is None:
+                print(f"Warning: Could not find destination button at position {i}")
+                continue
+
+            print(f"Building widget {widget_name}")
+            
+            # Build the widget
+            DropArea.build_widget(drop_slide, widget_name, dest_button)
             scrolled_window.show_all()
-            for item in drop_grid.get_children():
-                print(drop_grid.child_get_property(item, 'left-attach'))
-            print("success")
 
+    def find_section_grid(self, container, section_name):
+        """
+        Find the grid for a specific section based on the widget name
+        """
+        print(f"Looking for section grid: {section_name}")
+        if isinstance(container, Gtk.Grid):
+            for child in container.get_children():
+                if isinstance(child, Gtk.Grid) and child.get_name() == section_name:
+                    return child
+                # Also check inside the grid
+                if isinstance(child, Gtk.Grid):
+                    result = self.find_section_grid(child, section_name)
+                    if result:
+                        return result
+        return None
+
+    def find_if_frame(self, container):
+        """
+        Find the Frame widget that contains the if/then structure
+        """
+        if isinstance(container, Gtk.Grid):
+            for child in container.get_children():
+                if isinstance(child, Gtk.Box):
+                    for box_child in child.get_children():
+                        if isinstance(box_child, Gtk.Frame) and box_child.get_name() == "if":
+                            return box_child
+        return None
+
+    def get_section_grid(self, parent_box, section_name):
+        """
+        Get the grid for a specific section (if/then) from the parent box
+        
+        Args:
+            parent_box (Gtk.Box): Parent box containing the sections
+            section_name (str): Name of section to find ("if-section" or "then-section")
+            
+        Returns:
+            Gtk.Grid: Grid for the specified section
+        """
+        if parent_box is None:
+            print("Warning: parent_box is None in get_section_grid")
+            return None
+
+        for child in parent_box.get_children():
+            if isinstance(child, Gtk.Frame) and child.get_label() == section_name:
+                grid = child.get_child()
+                if grid is None:
+                    print(f"Warning: No grid found in {section_name} frame")
+                return grid
+        print(f"Warning: No frame found with label {section_name}")
+        return None
+    
     def get_child_by_name(self, widget, name):
         for child in widget.get_children():
             if child.get_name() == name:

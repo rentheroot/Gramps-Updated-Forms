@@ -49,12 +49,12 @@ class TemplateOperations:
     def not_equal(self, var_1, var_2):
 
         # not equal
-        if var_1 == var_2:
-            result = False
+        if var_1 != var_2:
+            result = True
 
         # equal
         else:
-            result = True
+            result = False
 
         return result
     
