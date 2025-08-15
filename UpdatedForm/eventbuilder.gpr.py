@@ -26,9 +26,9 @@
 #------------------------------------------------------------------------
 
 register(GRAMPLET,
-         id = "Test Build Gramplet",
-         name = _("Test Build Gramplet"),
-         description = _("Gramplet interface for Forms"),
+         id = "Forms Event Builder Gramplet",
+         name = _("Forms Event Builder Gramplet"),
+         description = _("Gramplet interface for creating event definitions for use with the form templating gramplet."),
          status = STABLE,
          version = '2.0.40',
          gramps_target_version = '6.0',
