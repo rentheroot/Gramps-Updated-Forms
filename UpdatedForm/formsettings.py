@@ -29,7 +29,7 @@ from guibuilder import GuiBuilder
 from templatehandler import HandleTemplate
 import json
 
-class WindowGramplet(Gramplet):
+class FormSettingsGramplet(Gramplet):
 
     def init(self):
 
