@@ -89,6 +89,7 @@ class DropAreaTextExtractor():
         
         self.valid = True
         self.text_representation = ""
+        self.error_representation = ""
 
         # JSON first Layer (Numbers)
         positions = sorted(self.j_data.keys())
@@ -129,14 +130,12 @@ class DropAreaTextExtractor():
                         then_section = sub_dict['then-section']
 
                         if len(if_section.keys()) == 0:
-                            error = "Error: The 'if' section of the 'if' component must have subcomponents"
+                            self.error_representation = "Error: The 'if' section of the 'if' component must have subcomponents"
                             self.valid = False
-                            print(error)
 
                         if len(then_section.keys()) == 0:
-                            error = "Error: The 'then' section of the 'if' component must have subcomponents"
+                            self.error_representation = "Error: The 'then' section of the 'if' component must have subcomponents"
                             self.valid = False
-                            print(error)
 
                         # Check all sub layers
                         if self.valid == True:
@@ -155,19 +154,16 @@ class DropAreaTextExtractor():
                         else_section = sub_dict['else-section']
 
                         if len(if_section.keys()) == 0:
-                            error = "Error: The 'if' section of the 'if-else' component must have subcomponents"
+                            self.error_representation = "Error: The 'if' section of the 'if-else' component must have subcomponents"
                             self.valid = False
-                            print(error)
 
                         if len(then_section.keys()) == 0:
-                            error = "Error: The 'then' section of the 'if-else' component must have subcomponents"
+                            self.error_representation = "Error: The 'then' section of the 'if-else' component must have subcomponents"
                             self.valid = False
-                            print(error)
 
                         if len(else_section.keys()) == 0:
-                            error = "Error: The 'else' section of the 'if-else' component must have subcomponents"
+                            self.error_representation = "Error: The 'else' section of the 'if-else' component must have subcomponents"
                             self.valid = False
-                            print(error)
 
                         # Check all sub layers
                         if self.valid == True:
@@ -194,15 +190,13 @@ class DropAreaTextExtractor():
                         if "str_comparator" in component_types or \
                             "str_operation" in component_types:
 
-                            error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                            self.error_representation = f"Error: The '{component}' component must be placed between two string or numerical values"
                             self.valid = False
-                            print(error)
 
                         else:
                             
-                            error = f"Error: The '{component}' component must be placed between two numerical values"
+                            self.error_representation = f"Error: The '{component}' component must be placed between two numerical values"
                             self.valid = False
-                            print(error)
 
                     else:
 
@@ -230,28 +224,26 @@ class DropAreaTextExtractor():
                                 if "str_comparator" in component_types or \
                                     "str_operation" in component_types:
 
-                                    error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                    self.error_representation = f"Error: The '{component}' component must be placed between two string or numerical values"
                                     self.valid = False
-                                    print(error)
 
                                 else:
                                     
-                                    error = f"Error: The '{component}' component must be placed between two numerical values"
-                                    self.valid = False
-                                    print(error)  
+                                    self.error_representation = f"Error: The '{component}' component must be placed between two numerical values"
+                                    self.valid = False 
 
                             # Check next and prev component types
                             else:
                                 if "int" in all_types:
                                     if component not in [*self.int_operations, *self.int_comparators]:
-                                        error = f"Error: The '{component}' component cannot be placed between numerical values"
+                                        self.error_representation = f"Error: The '{component}' component cannot be placed between numerical values"
                                         self.valid = False
-                                        print(error)
+                                        
                                 if "str" in all_types and self.valid is True:
                                     if component not in [*self.str_operations, *self.str_comparators]:
-                                        error = f"Error: The '{component}' component cannot be placed between textual values"
+                                        self.error_representation = f"Error: The '{component}' component cannot be placed between textual values"
                                         self.valid = False
-                                        print(error)
+                                        
 
                         # No next component
                         except KeyError:
@@ -259,15 +251,13 @@ class DropAreaTextExtractor():
                             if "str_comparator" in component_types or \
                                 "str_operation" in component_types:
 
-                                error = f"Error: The '{component}' component must be placed between two string or numerical values"
+                                self.error_representation = f"Error: The '{component}' component must be placed between two string or numerical values"
                                 self.valid = False
-                                print(error)
 
                             else:
                                 
-                                error = f"Error: The '{component}' component must be placed between two numerical values"
+                                self.error_representation = f"Error: The '{component}' component must be placed between two numerical values"
                                 self.valid = False
-                                print(error)
 
     def check_component_type(self, component):
         
@@ -427,7 +417,8 @@ class DropArea(Gtk.Grid):
     def __init__(self):
         Gtk.Grid.__init__(self)
         self.set_column_spacing(10)
-        
+        self.on_update = None
+
         blank = Gtk.Button()
         
         blank.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
@@ -446,6 +437,8 @@ class DropArea(Gtk.Grid):
         self.build_widget(text, widget)
 
         self.ExtractData.refresh_config_json(widget)
+        if self.on_update:
+            self.on_update()
         
     def build_widget(self, received_text, dest_widget):
         
@@ -754,6 +747,8 @@ class DropArea(Gtk.Grid):
             widget.destroy()
         
         extra_blank.destroy()
+        if self.on_update:
+            self.on_update()
 
 class EventBuilderWindow(Gramplet):
 
@@ -826,6 +821,11 @@ class EventBuilderWindow(Gramplet):
         self.desc_grid_dest = desc_grid_dest
         self.place_grid_dest = place_grid_dest
         self.role_grid_dest = role_grid_dest
+
+        self.date_grid_dest.on_update = self.update_text_labels
+        self.desc_grid_dest.on_update = self.update_text_labels
+        self.place_grid_dest.on_update = self.update_text_labels
+        self.role_grid_dest.on_update = self.update_text_labels
 
         stack_switcher = Gtk.StackSwitcher()
         stack_switcher.set_stack(stack)
@@ -1029,6 +1029,35 @@ class EventBuilderWindow(Gramplet):
 
         tool_palette_container.add(tool_palette)
 
+
+        # Add labels for text and error representation
+        self.date_text_label = Gtk.Label(label="Date: ")
+        self.date_error_label = Gtk.Label(label="Date Error: ")
+
+        self.desc_text_label = Gtk.Label(label="Description: ")
+        self.desc_error_label = Gtk.Label(label="Description Error: ")
+
+        self.place_text_label = Gtk.Label(label="Place: ")
+        self.place_error_label = Gtk.Label(label="Place Error: ")
+
+        self.role_text_label = Gtk.Label(label="Role: ")
+        self.role_error_label = Gtk.Label(label="Role Error: ")
+
+        # Container for labels
+        text_label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+
+        text_label_box.pack_start(self.date_text_label, False, False, 0)
+        text_label_box.pack_start(self.date_error_label, False, False, 0)
+
+        text_label_box.pack_start(self.desc_text_label, False, False, 0)
+        text_label_box.pack_start(self.desc_error_label, False, False, 0)
+
+        text_label_box.pack_start(self.place_text_label, False, False, 0)
+        text_label_box.pack_start(self.place_error_label, False, False, 0)
+
+        text_label_box.pack_start(self.role_text_label, False, False, 0)
+        text_label_box.pack_start(self.role_error_label, False, False, 0)
+
         # Setup container
         scrolled_window = self.gui.get_container_widget()
 
@@ -1038,9 +1067,42 @@ class EventBuilderWindow(Gramplet):
         box.add(grid)
         box.add(vbox)
         box.add(tool_palette_container)
+        box.pack_start(text_label_box, False, False, 0)
+
         scrolled_window.add(box)
-        
         scrolled_window.show_all()
+
+        # Initial update
+        self.update_text_labels()
+
+    def update_text_labels(self, *args):
+        # Extract and update text for each section using DropAreaTextExtractor
+        date_dict = self.date_grid_dest.ExtractData.iter_widgets(self.date_grid_dest)
+        desc_dict = self.desc_grid_dest.ExtractData.iter_widgets(self.desc_grid_dest)
+        place_dict = self.place_grid_dest.ExtractData.iter_widgets(self.place_grid_dest)
+        role_dict = self.role_grid_dest.ExtractData.iter_widgets(self.role_grid_dest)
+
+        date_text = DropAreaTextExtractor(date_dict).text_representation
+        date_error_text = DropAreaTextExtractor(date_dict).error_representation
+
+        desc_text = DropAreaTextExtractor(desc_dict).text_representation
+        desc_error_text = DropAreaTextExtractor(desc_dict).error_representation
+
+        place_text = DropAreaTextExtractor(place_dict).text_representation
+        place_error_text = DropAreaTextExtractor(place_dict).error_representation
+
+        role_text = DropAreaTextExtractor(role_dict).text_representation
+        role_error_text = DropAreaTextExtractor(role_dict).error_representation
+
+        self.date_text_label.set_text(f"Date: {date_text}")
+        self.desc_text_label.set_text(f"Description: {desc_text}")
+        self.place_text_label.set_text(f"Place: {place_text}")
+        self.role_text_label.set_text(f"Role: {role_text}")
+
+        self.date_error_label.set_text(f"Date Error: {date_error_text}")
+        self.desc_error_label.set_text(f"Description Error: {desc_error_text}")
+        self.place_error_label.set_text(f"Place Error: {place_error_text}")
+        self.role_error_label.set_text(f"Role Error: {role_error_text}")
 
     def get_custom_events(self):
         return sorted(self.dbstate.db.get_event_types(), key=lambda s: s.lower())
