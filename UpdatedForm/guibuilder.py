@@ -209,13 +209,15 @@ class GuiBuilder():
                 column_container.pack_start(column_label, False, False, 0)
 
                 # Add + buttons
-                image = Gtk.Image()
-                image.set_from_icon_name('list-add', Gtk.IconSize.BUTTON)
+                plus_icon = Gtk.Image()
+                plus_icon.set_from_icon_name('list-add', Gtk.IconSize.BUTTON)
                 add_btn = Gtk.Button()
                 add_btn.set_relief(Gtk.ReliefStyle.NONE)
-                add_btn.add(image)
+                add_btn.add(plus_icon)
                 add_btn.connect('clicked', self.add_event_dropdown)
                 column_container.pack_start(add_btn, False, False, 0)
+
+                # Display column_container in GUI
                 form_label_entry_grid.attach(column_container, left=placement, top=0, width=1, height=1)
 
             # Add settings for section
@@ -250,11 +252,31 @@ class GuiBuilder():
         column_dropdown_events = EventMenuWidget(obj=column_dropdown,
                                                 custom_values=self.get_custom_events()).obj
         
+        # Create box holding event dropdown and 'remove' button
+        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        event_dropdown_box.set_name("EventDropdownBox")
+        event_dropdown_box.pack_start(column_dropdown_events, False, False, 0)
+
+        # Add - button
+        remove_icon = Gtk.Image()
+        remove_icon.set_from_icon_name('list-remove', Gtk.IconSize.BUTTON)
+        remove_btn = Gtk.Button()
+        remove_btn.set_relief(Gtk.ReliefStyle.NONE)
+        remove_btn.add(remove_icon)
+
+        def remove_event_dropdown(btn):
+            parent = event_dropdown_box.get_parent()
+            if parent:
+                parent.remove(event_dropdown_box)
+
+        remove_btn.connect('clicked', remove_event_dropdown)
+        event_dropdown_box.pack_start(remove_btn, False, False, 0)
+        
         # Select containing box
         form_label_entry_box = add_btn.get_ancestor(Gtk.Box())
-
-        form_label_entry_box.pack_start(column_dropdown_events, False, False, 0)
+        form_label_entry_box.pack_start(event_dropdown_box, False, False, 0)
         form_label_entry_box.show_all()
+
 
     def load_event_dropdown(self, form_label_entry_box, stored_value):
 
@@ -267,7 +289,27 @@ class GuiBuilder():
         entry = column_dropdown_events.get_children()[0]
         entry.set_text(stored_value)
 
-        form_label_entry_box.pack_start(column_dropdown_events, False, False, 0)
+        # Create box holding event dropdown and 'remove' button
+        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        event_dropdown_box.set_name("EventDropdownBox")
+        event_dropdown_box.pack_start(column_dropdown_events, False, False, 0)
+
+        # Add - button
+        remove_icon = Gtk.Image()
+        remove_icon.set_from_icon_name('list-remove', Gtk.IconSize.BUTTON)
+        remove_btn = Gtk.Button()
+        remove_btn.set_relief(Gtk.ReliefStyle.NONE)
+        remove_btn.add(remove_icon)
+
+        def remove_event_dropdown(btn):
+            parent = event_dropdown_box.get_parent()
+            if parent:
+                parent.remove(event_dropdown_box)
+
+        remove_btn.connect('clicked', remove_event_dropdown)
+
+        event_dropdown_box.pack_start(remove_btn, False, False, 0)
+        form_label_entry_box.pack_start(event_dropdown_box, False, False, 0)
         form_label_entry_box.show_all()
 
     def get_custom_events(self):

@@ -64,16 +64,23 @@ class HandleTemplate:
                                     if hasattr(field_box, "get_children"):
 
                                         for field in field_box.get_children():
-                                                
+                                            print(field.get_name())
+
+                                            # Column Names
                                             if field.get_name()=="GtkLabel":
                                                 field_name = field.get_text()
                                                 if field_name not in field_dict.keys():
                                                     field_dict[field_name] = []
-
-                                            elif field.get_name()=="GtkComboBox":
+                                            
+                                            # Event Names
+                                            elif field.get_name()=="EventDropdownBox":
+                                                combo_container = field.get_children()
                                                 
-                                                entry = field.get_children()[0].get_text()
-                                                field_dict[field_name].append(entry)
+                                                for combo_container_child in combo_container:
+                                                    if combo_container_child.get_name()=="GtkComboBox":
+                                                    
+                                                        entry = combo_container_child.get_children()[0].get_text()
+                                                        field_dict[field_name].append(entry)
 
         return(settings_dict, form_name)
 
