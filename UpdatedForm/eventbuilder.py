@@ -1070,10 +1070,13 @@ class EventBuilderWindow(Gramplet):
         for widget in scrolled_window.get_children():
             widget.destroy()
 
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_box.add(vbox)
+        content_box.add(text_label_box)
         box.add(grid)
-        box.add(vbox)
+        box.add(content_box)
         box.add(tool_palette_container)
-        box.pack_start(text_label_box, False, False, 0)
+        
 
         scrolled_window.add(box)
         scrolled_window.show_all()
