@@ -430,7 +430,12 @@ class DropArea(Gtk.Grid):
 
         self.ExtractData = DroppedDataExtractor(self)
 
-
+    # Connect value change signals for updating text representation
+    def connect_value_signals(self, widget):
+        if isinstance(widget, Gtk.Entry):
+            widget.connect("changed", lambda *_: self.on_update() if self.on_update else None)
+        elif isinstance(widget, Gtk.SpinButton):
+            widget.connect("value-changed", lambda *_: self.on_update() if self.on_update else None)
 
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         text = data.get_text()
@@ -591,6 +596,7 @@ class DropArea(Gtk.Grid):
         box.attach(label, 0, 0, 3, 1)
         box.attach(clear_btn, 3, 0, 1, 1)
         box.attach(widget, 0, 1, 4, 1)
+        self.connect_value_signals(widget)
         parent_grid.insert_next_to(dest_widget, 0)
         box_enclosure.add(box)
         parent_grid.attach_next_to(box_enclosure, dest_widget, 0, 1, 1)
