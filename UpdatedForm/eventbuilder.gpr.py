@@ -1,7 +1,7 @@
 #
 # Gramps - a GTK+/GNOME based genealogy program
 #
-# Copyright (C) 2009 Nick Hall
+# Copyright (C) 2025 Renee Schmidt
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,9 +29,10 @@ register(GRAMPLET,
          id = "Forms Event Builder Gramplet",
          name = _("Forms Event Builder Gramplet"),
          description = _("Gramplet interface for creating event definitions for use with the form templating gramplet."),
-         status = STABLE,
+         status = EXPERIMENTAL,
          version = '2.0.40',
          gramps_target_version = '6.0',
+         authors=["Renee Schmidt"],
          navtypes=["Person"],
          fname = "eventbuilder.py",
          gramplet = 'EventBuilderWindow',
@@ -40,6 +41,6 @@ register(GRAMPLET,
          detached_height = 480,
          expand = True,
          gramplet_title = _("Event Builder"),
-         help_url="Form Gramplet",
+         help_url="https://gramps.discourse.group/t/plans-to-update-forms-addon-over-the-2024-summer/5274",
          include_in_listing = True,
         )
