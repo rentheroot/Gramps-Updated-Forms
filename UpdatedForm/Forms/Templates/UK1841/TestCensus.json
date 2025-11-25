@@ -1,0 +1,14 @@
+{
+    "Primary": {
+        "Where Born": [],
+        "Occupation": [
+            {
+                "Event": "Occupation",
+                "Date": 1,
+                "Place": 1
+            }
+        ],
+        "Age": [],
+        "Name": []
+    }
+}

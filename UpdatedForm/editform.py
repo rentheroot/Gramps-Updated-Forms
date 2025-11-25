@@ -195,6 +195,7 @@ class EditForm(ManagedWindow):
         grid.attach(source_text, 1, 0, 1, 1)
 
         ref_label = Gtk.Label(label=_("Reference:"))
+        ref_label.set_name('RefLabel')
         ref_label.set_halign(Gtk.Align.START)
         ref_label.set_valign(Gtk.Align.CENTER)
         grid.attach(ref_label, 0, 1, 1, 1)
@@ -205,31 +206,37 @@ class EditForm(ManagedWindow):
         self.widgets['ref_entry'] = ref_entry
 
         date_label = Gtk.Label(label=_("Date:"))
+        date_label.set_name('DateLabel')
         date_label.set_halign(Gtk.Align.START)
         date_label.set_valign(Gtk.Align.CENTER)
         grid.attach(date_label, 0, 2, 1, 1)
 
         date_text = ValidatableMaskedEntry()
+        date_text.set_name('DateText')
         date_text.set_hexpand(True)
         grid.attach(date_text, 1, 2, 1, 1)
         self.widgets['date_text'] = date_text
 
         date_button = Gtk.Button()
+        date_button.set_name('DateButton')
         grid.attach(date_button, 2, 2, 1, 1)
         self.widgets['date_button'] = date_button
 
         place_label = Gtk.Label(label=_("Place:"))
+        place_label.set_name('PlaceLabel')
         place_label.set_halign(Gtk.Align.START)
         place_label.set_valign(Gtk.Align.CENTER)
         grid.attach(place_label, 0, 3, 1, 1)
 
         place_text = Gtk.Label()
+        place_text.set_name('PlaceText')
         place_text.set_hexpand(True)
         place_text.set_halign(Gtk.Align.START)
         place_text.set_valign(Gtk.Align.CENTER)
         self.widgets['place_text'] = place_text
 
         place_event_box = Gtk.EventBox()
+        place_event_box.set_name('PlaceEventBox')
         place_event_box.add(place_text)
         grid.attach(place_event_box, 1, 3, 1, 1)
         self.widgets['place_event_box'] = place_event_box
@@ -645,6 +652,8 @@ class MultiSection(Gtk.Box):
 
         self.create_table()
 
+        self.perm_template_rules = self.EventManager.get_template_rules(form_id=self.form_id,
+                                                              template_id=self.template_id)
     def is_empty(self):
         """
         Indicate if the tab contains any data. This is used to determine
@@ -804,6 +813,18 @@ class MultiSection(Gtk.Box):
                     row.append(person_data[3].get(attr))
             self.model.append(tuple(row))
 
+    # Access Parent class
+    def get_edit_form(self):
+        parent = self.get_parent()
+        for i in range(5):
+            parent = parent.get_parent()
+            if i == 3:
+                for child in parent.get_children():
+                    if child.get_name() == 'editform+DetailsTab':
+                        editform_place = child
+
+        return editform_place
+
     def save(self, trans):
         """
         Save the form details to the database.
@@ -812,6 +833,9 @@ class MultiSection(Gtk.Box):
         # Load template definition
         template_rules = self.EventManager.get_template_rules(form_id=self.form_id,
                                                               template_id=self.template_id)
+
+        # Get Parent Class
+        place_class = self.get_edit_form()
 
         # Update events connected to people on the form
         all_people = []
@@ -850,6 +874,7 @@ class MultiSection(Gtk.Box):
             linked_events = self.EventManager.extract_rules(linked_events)
 
             event_refs = person.get_event_ref_list()
+
             # Write attributes
             set_attribute(self.citation, event_ref, ORDER_ATTR, str(order + 1))
             for offset, name in enumerate(self.columns):
@@ -859,7 +884,9 @@ class MultiSection(Gtk.Box):
                 # Update Events
                 if name in linked_events.keys():
                     for h in linked_events[name]:
-                        self.EventManager.update_event(h, value, self.db, trans, person, event_refs)
+                        extra_rules = self.perm_template_rules[str(self.role)][name]
+
+                        self.EventManager.update_event(h, value, self.db, trans, person, event_refs, extra_rules, place_class)
 
             self.db.commit_person(person, trans)
             

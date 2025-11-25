@@ -253,9 +253,9 @@ class GuiBuilder():
                                                 custom_values=self.get_custom_events()).obj
         
         # Create box holding event dropdown and 'remove' button
-        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
-        event_dropdown_box.set_name("EventDropdownBox")
-        event_dropdown_box.pack_start(column_dropdown_events, False, False, 0)
+        event_dropdown_sub_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        event_dropdown_sub_box.set_name("EventDropdownBox")
+        event_dropdown_sub_box.pack_start(column_dropdown_events, False, False, 0)
 
         # Add - button
         remove_icon = Gtk.Image()
@@ -266,12 +266,35 @@ class GuiBuilder():
 
         def remove_event_dropdown(btn):
             parent = event_dropdown_box.get_parent()
+
             if parent:
                 parent.remove(event_dropdown_box)
 
         remove_btn.connect('clicked', remove_event_dropdown)
-        event_dropdown_box.pack_start(remove_btn, False, False, 0)
+        event_dropdown_sub_box.pack_start(remove_btn, False, False, 0)
         
+        # Top Level dropdown box component
+        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        event_dropdown_box.set_name("EventDropdownTopLevelBox")
+
+        # Submenu for Checkboxes
+        checkbox_frame = Gtk.Frame(label = "Include from Form")
+        checkboxes_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        checkboxes_holder.set_name("CheckboxesHolder")
+
+        # Checkboxes
+        checkbox_date = Gtk.CheckButton(label="Date")
+        checkbox_place = Gtk.CheckButton(label="Place")
+
+        # Add checkboxes to submenu
+        checkboxes_holder.pack_start(checkbox_date, False, False, 0)
+        checkboxes_holder.pack_start(checkbox_place, False, False, 0)
+        checkbox_frame.add(checkboxes_holder)
+
+        # Combine dropdown and checkboxes
+        event_dropdown_box.pack_start(event_dropdown_sub_box, False, False, 0)
+        event_dropdown_box.pack_start(checkbox_frame, False, False, 0)
+
         # Select containing box
         form_label_entry_box = add_btn.get_ancestor(Gtk.Box())
         form_label_entry_box.pack_start(event_dropdown_box, False, False, 0)
@@ -280,6 +303,11 @@ class GuiBuilder():
 
     def load_event_dropdown(self, form_label_entry_box, stored_value):
 
+        # Extract each part of the event dropdown settings
+        event_name = stored_value['Event']
+        date_checkbox = stored_value['Date']
+        place_checkbox = stored_value['Place']
+
         column_dropdown = Gtk.ComboBox(has_entry=True, 
                                        margin=3)
         
@@ -287,12 +315,12 @@ class GuiBuilder():
                                                  custom_values=self.get_custom_events()).obj
         
         entry = column_dropdown_events.get_children()[0]
-        entry.set_text(stored_value)
+        entry.set_text(event_name)
 
         # Create box holding event dropdown and 'remove' button
-        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
-        event_dropdown_box.set_name("EventDropdownBox")
-        event_dropdown_box.pack_start(column_dropdown_events, False, False, 0)
+        event_dropdown_sub_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        event_dropdown_sub_box.set_name("EventDropdownBox")
+        event_dropdown_sub_box.pack_start(column_dropdown_events, False, False, 0)
 
         # Add - button
         remove_icon = Gtk.Image()
@@ -303,12 +331,43 @@ class GuiBuilder():
 
         def remove_event_dropdown(btn):
             parent = event_dropdown_box.get_parent()
+
             if parent:
                 parent.remove(event_dropdown_box)
 
         remove_btn.connect('clicked', remove_event_dropdown)
 
-        event_dropdown_box.pack_start(remove_btn, False, False, 0)
+        event_dropdown_sub_box.pack_start(remove_btn, False, False, 0)
+
+        # Top Level dropdown box component
+        event_dropdown_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        event_dropdown_box.set_name("EventDropdownTopLevelBox")
+
+        # Submenu for Checkboxes
+        checkbox_frame = Gtk.Frame(label = "Include from Form")
+        checkboxes_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        checkboxes_holder.set_name("CheckboxesHolder")
+        print(checkboxes_holder.get_name())
+
+        # Checkboxes
+        checkbox_date = Gtk.CheckButton(label="Date")
+        checkbox_place = Gtk.CheckButton(label="Place")
+
+        # Add checkboxes to submenu
+        checkboxes_holder.pack_start(checkbox_date, False, False, 0)
+        checkboxes_holder.pack_start(checkbox_place, False, False, 0)
+
+        if date_checkbox == 1:
+            checkbox_date.set_active(True)
+        if place_checkbox == 1:
+            checkbox_place.set_active(True)
+
+        checkbox_frame.add(checkboxes_holder)
+
+        # Combine dropdown and checkboxes
+        event_dropdown_box.pack_start(event_dropdown_sub_box, False, False, 0)
+        event_dropdown_box.pack_start(checkbox_frame, False, False, 0)
+
         form_label_entry_box.pack_start(event_dropdown_box, False, False, 0)
         form_label_entry_box.show_all()
 

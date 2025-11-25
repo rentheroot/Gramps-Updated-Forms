@@ -217,7 +217,7 @@ class FormSettingsGramplet(Gramplet):
     def recursive_destroy(self, parent):
 
         for child in parent.get_children():
-            if child.get_name()=="GtkComboBox" or child.get_name()=="TemplateOptions" or child.get_name()=="EventDropdownBox":
+            if child.get_name()=="GtkComboBox" or child.get_name()=="TemplateOptions" or child.get_name()=="EventDropdownTopLevelBox":
                 child.destroy()
             else:
                 if hasattr(child, "get_children"):

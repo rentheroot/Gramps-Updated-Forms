@@ -72,15 +72,39 @@ class HandleTemplate:
                                                 if field_name not in field_dict.keys():
                                                     field_dict[field_name] = []
                                             
-                                            # Event Names
-                                            elif field.get_name()=="EventDropdownBox":
-                                                combo_container = field.get_children()
-                                                
-                                                for combo_container_child in combo_container:
-                                                    if combo_container_child.get_name()=="GtkComboBox":
-                                                    
-                                                        entry = combo_container_child.get_children()[0].get_text()
-                                                        field_dict[field_name].append(entry)
+                                            # Event Names and Checkbox Status
+                                            elif field.get_name()=="EventDropdownTopLevelBox":
+
+                                                event_box_children = field.get_children()
+                                                entry = {}
+
+                                                for event_box_child in event_box_children:
+                                                    if event_box_child.get_name()=="GtkFrame":
+                                                        for frame_item in event_box_child.get_children():
+                                                            if frame_item.get_name()=="CheckboxesHolder":
+                                                                checkbox_children = frame_item.get_children()
+                                                                
+                                                                for checkbox_child in checkbox_children:
+                                                                    if checkbox_child.get_name()=="GtkCheckButton":
+                                                                        checkbox_label = checkbox_child.get_label()
+                                                                        if checkbox_child.get_active():
+                                                                            entry[checkbox_label] = 1
+                                                                            
+                                                                        else:
+                                                                            entry[checkbox_label] = 0
+
+                                                    elif event_box_child.get_name()=="EventDropdownBox":
+                                                        combo_container = event_box_child.get_children()
+                                                        
+                                                        for combo_container_child in combo_container:
+                                                            print(f'name: {combo_container_child.get_name()}')
+                                                            if combo_container_child.get_name()=="GtkComboBox":
+
+                                                                # Event type and checkbox status
+                                                                event = combo_container_child.get_children()[0].get_text()
+                                                                entry['Event'] = event
+
+                                                field_dict[field_name].append(entry)
 
         return(settings_dict, form_name)
 

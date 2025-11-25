@@ -22,6 +22,8 @@ import os
 import json
 from gramps.gen.lib import (Event, Note, EventRef)
 from gramps.gen.db import DbTxn
+from gramps.gen.lib import Date, Place
+from gramps.gen.datehandler import parser
 
 from gramps.gen.const import GRAMPS_LOCALE as glocale
 _ = glocale.translation.sgettext
@@ -60,6 +62,7 @@ class ManageEvents():
 
             linked_events = template_rules
             note_handle = empty_note.get_handle()
+            print(linked_events)
 
         return linked_events, note_handle
     
@@ -77,10 +80,30 @@ class ManageEvents():
     """
     Update Event
     """
-    def update_event(self, event_handle, value, db, trans, person, event_refs):
-        
+    def update_event(self, event_handle, value, db, trans, person, event_refs, extra_rules = None, place_class = None):
+        print("extra rules")
+        print(extra_rules)
+        extra_rules = extra_rules[0]
+        print(extra_rules)
         event = db.get_event_from_handle(event_handle)
         event.set_description(value)
+
+        # Set Date, if required / available
+        if extra_rules["Date"] == 1:
+            date_obj = place_class.event.get_date_object()
+            event.set_date_object(date_obj)
+
+        else:
+            event.set_date_object(Date()) 
+
+        # Set Place, if required / available
+        if extra_rules["Place"] == 1:
+            place_handle = place_class.event.get_place_handle()
+            event.set_place_handle(place_handle)
+
+        else:
+            event.set_place_handle(None)
+
         db.commit_event(event, trans)
         if event_handle not in event_refs:
             event_ref = EventRef()
@@ -130,22 +153,32 @@ class ManageEvents():
         # Any new events created?
         new_events = False
 
-        for k, v in template_rules.items():
-            if v == note_rules[k] and v != [] and row_value_dict[k]!=None:
+        for template_column, form_value in template_rules.items():
+
+            # Get list version from note_rules
+            current_note_vals = note_rules[template_column]
+
+            # Check for placeholder val that means event has not been created yet
+            if (form_value == current_note_vals and form_value != []) or (current_note_vals == [] and form_value != []):
 
                 new_events = True
 
-                # Create and link events
-                event_type = v
-                handles = []
-                for e in event_type:
-                    handle = self.create_linked_event(e, person, db, trans)
-                    handles.append(handle)
+                # Check if anything was transcribed for event
+                if row_value_dict.get(template_column) is not None:
 
-                note_rules[k] = handles
+                    # Create and link events
+                    handles = []
+                    for e in form_value:
+                        event_name = e['Event']
+                        if event_name:
+                            handle = self.create_linked_event(event_name, person, db, trans)
+                            handles.append(handle)
 
-            elif v != []:
-                print(v)
+                    note_rules[template_column] = handles
+
+                # If there is no transcription for event, create empty part of note
+                else:
+                    note_rules[template_column] = []
 
         # Write new events
         if new_events:
