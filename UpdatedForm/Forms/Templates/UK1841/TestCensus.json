@@ -5,7 +5,8 @@
             {
                 "Event": "Occupation",
                 "Date": 1,
-                "Place": 1
+                "Place": 1,
+                "Citation": 1
             }
         ],
         "Age": [],

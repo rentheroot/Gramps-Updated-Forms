@@ -285,10 +285,12 @@ class GuiBuilder():
         # Checkboxes
         checkbox_date = Gtk.CheckButton(label="Date")
         checkbox_place = Gtk.CheckButton(label="Place")
+        checkbox_citation = Gtk.CheckButton(label="Citation")
 
         # Add checkboxes to submenu
         checkboxes_holder.pack_start(checkbox_date, False, False, 0)
         checkboxes_holder.pack_start(checkbox_place, False, False, 0)
+        checkboxes_holder.pack_start(checkbox_citation, False, False, 0)
         checkbox_frame.add(checkboxes_holder)
 
         # Combine dropdown and checkboxes
@@ -307,6 +309,7 @@ class GuiBuilder():
         event_name = stored_value['Event']
         date_checkbox = stored_value['Date']
         place_checkbox = stored_value['Place']
+        citation_checkbox = stored_value['Citation']
 
         column_dropdown = Gtk.ComboBox(has_entry=True, 
                                        margin=3)
@@ -347,20 +350,23 @@ class GuiBuilder():
         checkbox_frame = Gtk.Frame(label = "Include from Form")
         checkboxes_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         checkboxes_holder.set_name("CheckboxesHolder")
-        print(checkboxes_holder.get_name())
 
         # Checkboxes
         checkbox_date = Gtk.CheckButton(label="Date")
         checkbox_place = Gtk.CheckButton(label="Place")
+        checkbox_citation = Gtk.CheckButton(label="Citation")
 
         # Add checkboxes to submenu
         checkboxes_holder.pack_start(checkbox_date, False, False, 0)
         checkboxes_holder.pack_start(checkbox_place, False, False, 0)
+        checkboxes_holder.pack_start(checkbox_citation, False, False, 0)
 
         if date_checkbox == 1:
             checkbox_date.set_active(True)
         if place_checkbox == 1:
             checkbox_place.set_active(True)
+        if citation_checkbox == 1:
+            checkbox_citation.set_active(True)
 
         checkbox_frame.add(checkboxes_holder)
 

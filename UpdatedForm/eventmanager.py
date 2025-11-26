@@ -104,7 +104,17 @@ class ManageEvents():
         else:
             event.set_place_handle(None)
 
+        # Set Citation, if required / available
+        if extra_rules["Citation"] == 1:
+            citation_handle = place_class.citation.get_handle()
+            event.add_citation(citation_handle)
+
+        else:
+            event.remove_citation_references(citation_handle)
+
+        db.commit_citation(place_class.citation, trans)
         db.commit_event(event, trans)
+        
         if event_handle not in event_refs:
             event_ref = EventRef()
             event_ref.set_reference_handle(event.get_handle())
