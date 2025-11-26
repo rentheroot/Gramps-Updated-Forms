@@ -110,6 +110,7 @@ class FormSettingsGramplet(Gramplet):
         scroll_template.add(self.templates_tree_view)
         scroll_template.set_policy( Gtk.PolicyType.NEVER, 
                                     Gtk.PolicyType.AUTOMATIC)
+        scroll_template.set_vexpand(True)
 
         grid.attach(scroll_template, 
                     left=3, 
