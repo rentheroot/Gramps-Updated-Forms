@@ -105,6 +105,33 @@ class FormSettingsGramplet(Gramplet):
 
         self.add_default_settings_folders()
 
+        # Update Template List on Save
+        def _on_template_saved(form_id):
+
+            selection = tree_view.get_selection()
+            model, treeiter = selection.get_selected()
+
+            if treeiter is not None \
+                            and '.xml' not in \
+                            model[treeiter][0]:
+                
+                # Select Grid
+                window = self.gui.get_container_widget()\
+                    .get_children()[0]\
+                    .get_children()[0]
+                
+                self.visible_form = form_id
+
+                # Load Template Names
+                self.add_default_settings_folders(form_id)
+
+                # Remove all comboboxes
+                self.recursive_destroy(window)
+            
+            self.stacked_options.hide()
+
+        self.GuiComponents.on_template_saved = _on_template_saved
+        
         # Make template_view scrollable
         scroll_template = Gtk.ScrolledWindow()
         scroll_template.add(self.templates_tree_view)
@@ -185,10 +212,14 @@ class FormSettingsGramplet(Gramplet):
 
             form_id = self.stacked_options.get_visible_child_name()
 
-            self.GuiComponents.load_template_file(form_id=form_id,
-                                                template_name=selected,
-                                                settings_window=window, 
-                                                template_builder=self.TemplateHandler)
+            # Only change if the file for form_id exists
+            template_folder = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id)
+            contents = os.listdir(template_folder)
+            if selected in contents:
+                self.GuiComponents.load_template_file(form_id=form_id,
+                                                    template_name=selected,
+                                                    settings_window=window, 
+                                                    template_builder=self.TemplateHandler)
         else:
 
             # Select Grid

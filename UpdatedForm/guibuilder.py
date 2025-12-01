@@ -566,9 +566,7 @@ class GuiBuilder():
                     else:
 
                         for section_name in section:
-                            
                             for field_box in section_name.get_children():
-
                                 for field in field_box.get_children():
                                         
                                     # Get box and add settings
@@ -594,3 +592,6 @@ class GuiBuilder():
         settings = json.dumps(settings, indent=4)
         with open(template_path,'w') as f:
              f.write(settings)
+
+        if hasattr(self, 'on_template_saved') and callable(self.on_template_saved):
+            self.on_template_saved(form_id)
