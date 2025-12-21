@@ -449,6 +449,34 @@ class GuiBuilder():
                 save_btn = Gtk.Button(label="Save")
                 save_btn.connect('clicked', self.template_saver)
 
+                # Label for Template Role
+                role_label = Gtk.Label()
+                role_label.set_label("Set Role\nFrom Template:")
+                role_label.set_margin_top(5)
+                role_label.set_margin_bottom(5)
+                role_label.set_margin_start(5)
+
+                # Role Checkbox
+                self.role_checkbox = Gtk.CheckButton()
+                self.role_checkbox.set_name("RoleCheckbox")
+                self.role_checkbox.set_margin_top(5)
+                self.role_checkbox.set_margin_bottom(5)
+                self.role_checkbox.set_margin_start(5)
+
+                # Role Column Label
+                role_col_label = Gtk.Label()
+                role_col_label.set_label("Set Role from\nColumn Named:")
+                role_col_label.set_margin_top(5)
+                role_col_label.set_margin_bottom(5)
+                role_col_label.set_margin_start(5)
+
+                # Role Column Entry
+                self.role_col_entry = Gtk.Entry()
+                self.role_col_entry.set_name("RoleEntry")
+                self.role_col_entry.set_margin_top(5)
+                self.role_col_entry.set_margin_bottom(5)
+                self.role_col_entry.set_margin_start(5)
+
                 # Master Label
                 template_section_label = Gtk.Label()
                 template_section_label.set_margin_top(5)
@@ -456,10 +484,19 @@ class GuiBuilder():
                 template_section_label.set_margin_start(5)
                 template_section_label.set_markup("<b><u>Template Options</u></b>")
 
+                # Attach Option Header
                 form_name_entry.attach(template_section_label, 0,0,1,1)
-                form_name_entry.attach(entry_label, 0,1,1,1)
-                form_name_entry.attach(self.name_entry, 1,1,1,1)
-                form_name_entry.attach(save_btn, 2, 1, 1, 1)
+
+                # Attach Role Information
+                form_name_entry.attach(role_label, 0, 1, 1, 1)
+                form_name_entry.attach(self.role_checkbox, 1, 1, 1, 1)
+                form_name_entry.attach(role_col_label, 2, 1, 1, 1)
+                form_name_entry.attach(self.role_col_entry, 3, 1, 1, 1)
+
+                # Attach Form Name Information
+                form_name_entry.attach(entry_label, 0,2,1,1)
+                form_name_entry.attach(self.name_entry, 1,2,1,1)
+                form_name_entry.attach(save_btn, 2, 2, 1, 1)
 
                 selected_form = template_builder.step_down(selected_form, "GtkBox")
                 
@@ -539,6 +576,33 @@ class GuiBuilder():
                 save_btn = Gtk.Button(label="Save")
                 save_btn.connect('clicked', self.template_saver)
 
+                # Label for Template Role
+                role_label = Gtk.Label()
+                role_label.set_label("Set Role\nFrom Template:")
+                role_label.set_margin_top(5)
+                role_label.set_margin_bottom(5)
+                role_label.set_margin_start(5)
+
+                # Role Checkbox
+                self.role_checkbox = Gtk.CheckButton()
+                self.role_checkbox.set_name("RoleCheckbox")
+                self.role_checkbox.set_margin_top(5)
+                self.role_checkbox.set_margin_bottom(5)
+                self.role_checkbox.set_margin_start(5)
+
+                # Role Column Label
+                role_col_label = Gtk.Label()
+                role_col_label.set_label("Set Role from\nColumn Named:")
+                role_col_label.set_margin_top(5)
+                role_col_label.set_margin_bottom(5)
+                role_col_label.set_margin_start(5)
+
+                # Role Column Entry
+                self.role_col_entry = Gtk.Entry()
+                self.role_col_entry.set_margin_top(5)
+                self.role_col_entry.set_margin_bottom(5)
+                self.role_col_entry.set_margin_start(5)
+
                 # Master Label
                 template_section_label = Gtk.Label()
                 template_section_label.set_margin_top(5)
@@ -546,10 +610,19 @@ class GuiBuilder():
                 template_section_label.set_margin_start(5)
                 template_section_label.set_markup("<b><u>Template Options</u></b>")
 
+                # Attach Option Header
                 form_name_entry.attach(template_section_label, 0,0,1,1)
-                form_name_entry.attach(entry_label, 0,1,1,1)
-                form_name_entry.attach(self.name_entry, 1,1,1,1)
-                form_name_entry.attach(save_btn, 2, 1, 1, 1)
+
+                # Attach Role Information
+                form_name_entry.attach(role_label, 0, 1, 1, 1)
+                form_name_entry.attach(self.role_checkbox, 1, 1, 1, 1)
+                form_name_entry.attach(role_col_label, 2, 1, 1, 1)
+                form_name_entry.attach(self.role_col_entry, 3, 1, 1, 1)
+
+                # Attach Form Name Information
+                form_name_entry.attach(entry_label, 0,2,1,1)
+                form_name_entry.attach(self.name_entry, 1,2,1,1)
+                form_name_entry.attach(save_btn, 2, 2, 1, 1)
 
                 selected_form = template_builder.step_down(selected_form, "GtkBox")
                 

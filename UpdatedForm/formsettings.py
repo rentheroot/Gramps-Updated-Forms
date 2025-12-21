@@ -45,7 +45,7 @@ class FormSettingsGramplet(Gramplet):
         # List of form files
         forms_path = os.path.join(os.path.dirname(__file__), 
                                   "Forms")
-        
+
         form_files = [f for f in os.listdir(forms_path) if os.path.isfile(os.path.join(forms_path, f))]
 
         # Dynamic sizing
@@ -214,7 +214,7 @@ class FormSettingsGramplet(Gramplet):
 
             # Only change if the file for form_id exists
             template_folder = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id)
-            contents = os.listdir(template_folder)
+            contents = [i for i in os.listdir(template_folder) if '.json' in i]
             if selected in contents:
                 self.GuiComponents.load_template_file(form_id=form_id,
                                                     template_name=selected,
@@ -265,8 +265,8 @@ class FormSettingsGramplet(Gramplet):
                                            "Forms", 
                                            "Templates", 
                                            form_id)
-             
-             templates = os.listdir(template_paths)
+             print(os.listdir(template_paths))
+             templates = [i for i in os.listdir(template_paths) if '.json' in i]
              
              for template in templates:
                 

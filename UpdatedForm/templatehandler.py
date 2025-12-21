@@ -39,7 +39,18 @@ class HandleTemplate:
         selected_form = self.step_down(selected_form, "GtkViewport")
         selected_form = self.step_down(selected_form, "GtkBox")
         selected_form = self.step_down(selected_form, "GtkFrame")
+
+        # Options Holder
+        container_frame = selected_form[0]
         selected_form = self.step_down(selected_form, "GtkBox")
+
+        # Get General Form Settings
+        for child in container_frame.get_children():
+            if child.get_name() == "TemplateOptions":
+                general_settings_window = child
+
+        for child in general_settings_window.get_children():
+            print(child.get_name())
 
         for s in selected_form:
 
@@ -64,7 +75,6 @@ class HandleTemplate:
                                     if hasattr(field_box, "get_children"):
 
                                         for field in field_box.get_children():
-                                            print(field.get_name())
 
                                             # Column Names
                                             if field.get_name()=="GtkLabel":
@@ -97,7 +107,6 @@ class HandleTemplate:
                                                         combo_container = event_box_child.get_children()
                                                         
                                                         for combo_container_child in combo_container:
-                                                            print(f'name: {combo_container_child.get_name()}')
                                                             if combo_container_child.get_name()=="GtkComboBox":
 
                                                                 # Event type and checkbox status
