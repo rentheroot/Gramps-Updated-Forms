@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2009-2015 Nick Hall
 # Copyright (C) 2011      Gary Burton
+# Copyright (C) 2024      Steve Youngs
 # Copyright (C) 2024      Renee Schmidt
 #
 # This program is free software; you can redistribute it and/or modify
@@ -23,6 +24,11 @@
 """
 Form editor.
 """
+# -------------------------------------------------------------------------
+# Python modules
+# -------------------------------------------------------------------------
+from gi.repository import Gdk
+import pickle
 
 #------------------------------------------------------------------------
 #
@@ -41,6 +47,7 @@ from gramps.gui.editors.objectentries import PlaceEntry
 from gramps.gui.widgets import (MonitoredEntry, MonitoredDate,
                                 ValidatableMaskedEntry)
 from gramps.gui.editors import EditPerson, EditFamily
+from gramps.gui.ddtargets import DdTargets
 from gramps.gui.display import display_help
 from gramps.gui.dialog import ErrorDialog
 from gramps.gui.selectors import SelectorFactory
@@ -654,6 +661,22 @@ class MultiSection(Gtk.Box):
 
         self.perm_template_rules = self.EventManager.get_template_rules(form_id=self.form_id,
                                                               template_id=self.template_id)
+        self.drag_dest_set(
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP,
+            [DdTargets.PERSON_LINK.target()],
+            Gdk.DragAction.COPY,
+        )
+        self.connect("drag_data_received", self.on_drag_data_received)
+
+    def on_drag_data_received(
+        self, widget, context, pos_x, pos_y, sel_data, info, time
+    ):
+        if sel_data and sel_data.get_data():
+            (drag_type, idval, handle, val) = pickle.loads(sel_data.get_data())
+            person = self.db.get_person_from_handle(handle)
+            if person:
+                self.__person_added(person)
+
     def is_empty(self):
         """
         Indicate if the tab contains any data. This is used to determine
@@ -676,6 +699,11 @@ class MultiSection(Gtk.Box):
         Called when a person is added to the form.
         """
         self.model.append(self.__new_person_row(person))
+        self.drag_dest_set(
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP,
+            [DdTargets.PERSON_LINK.target()],
+            Gdk.DragAction.COPY,
+        )
 
     def __edit_person(self, treeview, path, view_column):
         """
@@ -958,6 +986,22 @@ class PersonSection(Gtk.Box):
 
         self.set_columns()
 
+        self.drag_dest_set(
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP,
+            [DdTargets.PERSON_LINK.target()],
+            Gdk.DragAction.COPY,
+        )
+        self.connect("drag_data_received", self.on_drag_data_received)
+
+    def on_drag_data_received(
+        self, widget, context, pos_x, pos_y, sel_data, info, time
+    ):
+        if sel_data and sel_data.get_data():
+            (drag_type, idval, handle, val) = pickle.loads(sel_data.get_data())
+            person = self.db.get_person_from_handle(handle)
+            if person:
+                self.__added(person)
+
     def is_empty(self):
         return False if self.handle else True
 
@@ -1123,6 +1167,22 @@ class FamilySection(Gtk.Box):
 
         self.set_columns(self.widgets, self.grid)
         self.set_columns(self.widgets2, self.grid2)
+
+        self.drag_dest_set(
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP,
+            [DdTargets.FAMILY_LINK.target()],
+            Gdk.DragAction.COPY,
+        )
+        self.connect("drag_data_received", self.on_drag_data_received)
+
+    def on_drag_data_received(
+        self, widget, context, pos_x, pos_y, sel_data, info, time
+    ):
+        if sel_data and sel_data.get_data():
+            (drag_type, idval, handle, val) = pickle.loads(sel_data.get_data())
+            family = self.db.get_family_from_handle(handle)
+            if family:
+                self.__added(family)
 
     def is_empty(self):
         return False if self.handle else True
