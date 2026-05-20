@@ -32,7 +32,8 @@ class HandleTemplate:
     def get_current_settings(self, settings_window):
 
         settings_dict = {}
-
+        master_settings_dict = {"Version" : "1.0",
+                                "RoleSettings" : { }}
 
         form_name = settings_window.get_visible_child_name()
         selected_form = settings_window.get_visible_child()
@@ -51,6 +52,23 @@ class HandleTemplate:
 
         for child in general_settings_window.get_children():
             print(child.get_name())
+
+            # Get settings for setting Role from columns
+            if child.get_name() == "RoleCheckbox":
+                set_role = child.get_active()
+
+            if child.get_name() == "RoleEntry":
+                set_role_col = child.get_active_text()
+
+        # If include role checkbox checked and role entry not blank, write to settings
+        if set_role == True and set_role_col != '':
+            master_settings_dict["RoleSettings"]["IncludeRole"] = 1
+            master_settings_dict["RoleSettings"]["RoleColumn"] = set_role_col
+
+        else:
+            master_settings_dict["RoleSettings"]["IncludeRole"] = 0
+            master_settings_dict["RoleSettings"]["RoleColumn"] = ""
+
 
         for s in selected_form:
 
@@ -115,7 +133,7 @@ class HandleTemplate:
 
                                                 field_dict[field_name].append(entry)
 
-        return(settings_dict, form_name)
+        return(settings_dict, master_settings_dict, form_name)
 
     def step_down_initial(self, current):
         children = []

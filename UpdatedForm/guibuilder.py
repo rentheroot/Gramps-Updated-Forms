@@ -405,9 +405,15 @@ class GuiBuilder():
     def load_template_file(self, form_id, template_name, settings_window, template_builder):
         template_folder = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id)
         template_file = os.path.join(template_folder, template_name)
+        template_cfg = os.path.join(template_folder, template_name.replace('.json', '.cfg'))
 
         with open(template_file, 'r') as f:
             settings = json.load(f)
+
+        master_settings = {}
+        if os.path.exists(template_cfg):
+            with open(template_cfg, 'r') as cfg:
+                master_settings = json.load(cfg).get('RoleSettings', {})
 
         # Focus on widget group containing components of selected form settings
         current = template_builder.step_down_initial(settings_window)
@@ -462,6 +468,7 @@ class GuiBuilder():
                 self.role_checkbox.set_margin_top(5)
                 self.role_checkbox.set_margin_bottom(5)
                 self.role_checkbox.set_margin_start(5)
+                self.role_checkbox.set_active(bool(master_settings.get('IncludeRole', 0)))
 
                 # Role Column Label
                 role_col_label = Gtk.Label()
@@ -470,12 +477,9 @@ class GuiBuilder():
                 role_col_label.set_margin_bottom(5)
                 role_col_label.set_margin_start(5)
 
-                # Role Column Entry
-                self.role_col_entry = Gtk.Entry()
-                self.role_col_entry.set_name("RoleEntry")
-                self.role_col_entry.set_margin_top(5)
-                self.role_col_entry.set_margin_bottom(5)
-                self.role_col_entry.set_margin_start(5)
+                # Role Column ComboBox
+                selected_column = master_settings.get('RoleColumn', '')
+                self.role_col_entry = self.build_role_column_combobox(form_id, selected_column)
 
                 # Master Label
                 template_section_label = Gtk.Label()
@@ -597,11 +601,13 @@ class GuiBuilder():
                 role_col_label.set_margin_bottom(5)
                 role_col_label.set_margin_start(5)
 
-                # Role Column Entry
-                self.role_col_entry = Gtk.Entry()
-                self.role_col_entry.set_margin_top(5)
-                self.role_col_entry.set_margin_bottom(5)
-                self.role_col_entry.set_margin_start(5)
+                # Role Column ComboBox
+                current_form_id = None
+                if hasattr(self, 'stacked_options'):
+                    get_name = getattr(self.stacked_options, 'get_visible_child_name', None)
+                    if callable(get_name):
+                        current_form_id = get_name()
+                self.role_col_entry = self.build_role_column_combobox(current_form_id)
 
                 # Master Label
                 template_section_label = Gtk.Label()
@@ -650,21 +656,42 @@ class GuiBuilder():
         container_frame.pack_start(form_name_entry, True, True, 0)
         container_frame.show_all()
 
+    def build_role_column_combobox(self, form_id, selected_column=None):
+        combo = Gtk.ComboBoxText()
+        combo.set_name("RoleEntry")
+        combo.set_margin_top(5)
+        combo.set_margin_bottom(5)
+        combo.set_margin_start(5)
+
+        options = [""]
+        if form_id:
+            form_settings = self.TemplateHandler.get_settings_from_form_file(form_id)
+            for section_columns in form_settings.values():
+                options.extend(section_columns.keys())
+
+        sorted_options = sorted(set(options))
+        for option in sorted_options:
+            combo.append_text(option)
+
+        if selected_column and selected_column in sorted_options:
+            combo.set_active(sorted_options.index(selected_column))
+        elif sorted_options:
+            combo.set_active(0)
+
+        return combo
+
     def template_saver(self, btn):
 
         # Select grid
         window = self.stacked_options
         
-        details_settings, form_id = self.TemplateHandler.get_current_settings(window)
+        details_settings, master_settings, form_id = self.TemplateHandler.get_current_settings(window)
 
         template_title = self.name_entry.get_text()
 
         # Names of the two settings files
         template_details_filename = template_title + '.json'
         template_master_filename = template_title + '.cfg'
-
-        # Get Master Settings
-        master_settings = {"Version" : "1.0"}
         
         
         ''' Write Template Files '''
