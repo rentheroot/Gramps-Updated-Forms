@@ -655,16 +655,34 @@ class GuiBuilder():
         # Select grid
         window = self.stacked_options
         
-        settings, form_id = self.TemplateHandler.get_current_settings(window)
+        details_settings, form_id = self.TemplateHandler.get_current_settings(window)
 
-        template_name = self.name_entry.get_text() + '.json'
+        template_title = self.name_entry.get_text()
 
-        # Write Template File
-        template_path = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id,template_name)
+        # Names of the two settings files
+        template_details_filename = template_title + '.json'
+        template_master_filename = template_title + '.cfg'
 
-        settings = json.dumps(settings, indent=4)
-        with open(template_path,'w') as f:
-             f.write(settings)
+        # Get Master Settings
+        master_settings = {"Version" : "1.0"}
+        
+        
+        ''' Write Template Files '''
+
+        # Write settings for individual columns
+        template_details_path = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id, template_details_filename)
+
+        details_settings = json.dumps(details_settings, indent=4)
+        with open(template_details_path,'w') as f:
+             f.write(details_settings)
+
+        # Write settings for general template (applies to all columns)
+        template_master_path = os.path.join(os.path.dirname(__file__), "Forms", "Templates", form_id, template_master_filename)
+
+        master_settings = json.dumps(master_settings, indent=4)
+        with open(template_master_path,'w') as f:
+             f.write(master_settings)
+
 
         if hasattr(self, 'on_template_saved') and callable(self.on_template_saved):
             self.on_template_saved(form_id)
