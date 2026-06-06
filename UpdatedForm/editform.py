@@ -597,8 +597,22 @@ class MultiSection(Gtk.Box):
         self.columns = []
         self.initial_people = []
 
+        self.master_template_rules = self.EventManager.get_master_template_rules(form_id=self.form_id,
+                                                                    template_id=self.template_id)
+        
+        # Set default role to primary
         self.role = EventRoleType()
         self.role.set_from_xml_str(section)
+        self.set_custom_role = False
+        self.role_col = ''
+
+        # Determine if it should set custom role based on template settings
+        if (self.master_template_rules['RoleSettings']['IncludeRole'] == 1):
+
+            self.set_custom_role = True
+
+            # get column name 
+            self.role_col = self.master_template_rules['RoleSettings']['RoleColumn']
 
         hbox = Gtk.Box()
         hbox.set_spacing(6)
@@ -661,6 +675,7 @@ class MultiSection(Gtk.Box):
 
         self.perm_template_rules = self.EventManager.get_template_rules(form_id=self.form_id,
                                                               template_id=self.template_id)
+
         self.drag_dest_set(
             Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP,
             [DdTargets.PERSON_LINK.target()],
@@ -811,23 +826,71 @@ class MultiSection(Gtk.Box):
                              include_classes=['Person']):
             handle = item[1]
             person = self.db.get_person_from_handle(handle)
+            uses_custom_role = False
 
-            for event_ref in person.get_event_ref_list():
+            # If default role is used
+            if self.set_custom_role is False:
+                for event_ref in person.get_event_ref_list():
+                    
+                    if (event_ref.ref == event.get_handle() and
+                        event_ref.get_role() == self.role):
 
-                if (event_ref.ref == event.get_handle() and
-                    event_ref.get_role() == self.role):
+                        self.initial_people.append(handle)
+                        attrs = {}
+                        order = 0
+                        for attr in event_ref.get_attribute_list():
+                            attr_type = str(attr.get_type())
+                            if attr_type == ORDER_ATTR:
+                                order = int(attr.get_value())
+                            else:
+                                attrs[attr_type] = attr.get_value()
+                        name = name_displayer.display(person)
+                        person_list.append([order, handle, name, attrs])
 
-                    self.initial_people.append(handle)
-                    attrs = {}
-                    order = 0
-                    for attr in event_ref.get_attribute_list():
-                        attr_type = str(attr.get_type())
-                        if attr_type == ORDER_ATTR:
-                            order = int(attr.get_value())
+            # If custom role is used
+            else:
+                for event_ref in person.get_event_ref_list():
+                    
+                    # Check for role in event
+                    if (event_ref.ref == event.get_handle()):
+                        for attr in event_ref.get_attribute_list():
+                            attr_type = str(attr.get_type())
+                            if attr_type == self.role_col:
+                                custom_role = attr.get_value()
+                                if event_ref.get_role() == custom_role:
+
+                                    # validate role
+                                    uses_custom_role = True
+
+                        if uses_custom_role is True:
+                            self.initial_people.append(handle)
+                            attrs = {}
+                            order = 0
+                            for attr in event_ref.get_attribute_list():
+                                attr_type = str(attr.get_type())
+                                if attr_type == ORDER_ATTR:
+                                    order = int(attr.get_value())
+                                else:
+                                    attrs[attr_type] = attr.get_value()
+                            name = name_displayer.display(person)
+                            person_list.append([order, handle, name, attrs])
+
+                        # If custom role column is blank, use default role
                         else:
-                            attrs[attr_type] = attr.get_value()
-                    name = name_displayer.display(person)
-                    person_list.append([order, handle, name, attrs])
+                            if (event_ref.ref == event.get_handle() and
+                                event_ref.get_role() == self.role):
+
+                                self.initial_people.append(handle)
+                                attrs = {}
+                                order = 0
+                                for attr in event_ref.get_attribute_list():
+                                    attr_type = str(attr.get_type())
+                                    if attr_type == ORDER_ATTR:
+                                        order = int(attr.get_value())
+                                    else:
+                                        attrs[attr_type] = attr.get_value()
+                                name = name_displayer.display(person)
+                                person_list.append([order, handle, name, attrs])
 
         person_list.sort()
 
@@ -870,15 +933,23 @@ class MultiSection(Gtk.Box):
         for order, row in enumerate(self.model):
             all_people.append(row[0])
             person = self.db.get_person_from_handle(row[0])
-            event_ref = get_event_ref(self.event, person, self.role)
-
-            event_creation_rules = template_rules[str(self.role)]
 
             # Row Values
             row_value_dict = {}
             for offset, name in enumerate(self.columns):
                 value = row[offset + 1]
                 row_value_dict[name] = value
+
+            # if not using custom role
+            if self.set_custom_role is False:
+                event_ref = get_event_ref(self.event, person, self.role)
+            else:
+                event_ref = get_event_ref_changed_role(self.event, person, self.role, row_value_dict[self.role_col])
+
+
+            event_creation_rules = template_rules[str(self.role)]
+
+
 
             linked_events, note_handle = self.EventManager.load_notes(event_ref,
                                                          self.db,
@@ -1317,6 +1388,42 @@ def get_event_ref(event, obj, role):
     event_ref = EventRef()
     event_ref.ref = event.get_handle()
     event_ref.set_role(role)
+    obj.add_event_ref(event_ref)
+    return event_ref
+
+def get_event_ref_changed_role(event, obj, default_role, actual_role):
+    """
+    Return the event reference for a given person or family that points
+    to the event being edited. Used when the role for the event may have been edited
+    """
+    for event_ref in obj.get_event_ref_list():
+
+        # If event is still saved with default role
+        if (event_ref.ref == event.get_handle() and
+            event_ref.get_role() == default_role):
+            event_ref.set_role(actual_role)
+            return event_ref
+        
+        # If event saved with custom role
+        elif (event_ref.ref == event.get_handle() and
+            event_ref.get_role() == actual_role):
+            return event_ref
+        
+        # If event custom role has been changed to new role
+        elif (event_ref.ref == event.get_handle()):
+
+            # new custom role
+            if actual_role != '':
+                event_ref.set_role(actual_role)
+            # custom changed to default
+            else:
+                event_ref.set_role(default_role)
+            return event_ref
+
+    # Add new event reference
+    event_ref = EventRef()
+    event_ref.ref = event.get_handle()
+    event_ref.set_role(actual_role)
     obj.add_event_ref(event_ref)
     return event_ref
 

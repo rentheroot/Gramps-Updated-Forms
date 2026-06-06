@@ -472,7 +472,7 @@ class GuiBuilder():
 
                 # Role Column Label
                 role_col_label = Gtk.Label()
-                role_col_label.set_label("Set Role from\nColumn Named:")
+                role_col_label.set_label("Set Primary Role from\nColumn Named:")
                 role_col_label.set_margin_top(5)
                 role_col_label.set_margin_bottom(5)
                 role_col_label.set_margin_start(5)

@@ -62,7 +62,6 @@ class ManageEvents():
 
             linked_events = template_rules
             note_handle = empty_note.get_handle()
-            print(linked_events)
 
         return linked_events, note_handle
     
@@ -81,10 +80,8 @@ class ManageEvents():
     Update Event
     """
     def update_event(self, event_handle, value, db, trans, person, event_refs, extra_rules = None, place_class = None):
-        print("extra rules")
-        print(extra_rules)
+
         extra_rules = extra_rules[0]
-        print(extra_rules)
         event = db.get_event_from_handle(event_handle)
         event.set_description(value)
 
@@ -137,6 +134,23 @@ class ManageEvents():
 
         return template_rules
     
+    """
+    Identify Master Template Rules for Form
+    """
+    def get_master_template_rules(self, form_id, template_id):
+        template_path = os.path.join(os.path.dirname(__file__),
+                                     "Forms",
+                                     "Templates",
+                                     form_id,
+                                     template_id)
+        
+        master_template_path = template_path + '.cfg'
+        
+        with open(master_template_path, 'r') as f:
+            master_template_rules = json.load(f)
+
+        return master_template_rules
+
     """
     Determine which form headings have rules attached 
     """
